@@ -34,7 +34,7 @@ extern u8  TIM3CH4_CAPTURE_STA;
 extern u16	TIM3CH4_CAPTURE_VAL;	
 
 extern u32 LeftEncoder_Cnt,RightEncoder_Cnt;//左右轮计数全局化
-
+extern u32 Time6_Cnt;
 
 void TIM2_Int_Init(u16 arr,u16 psc);
 void TIM8_PWM_Init(u16 arr,u16 psc);

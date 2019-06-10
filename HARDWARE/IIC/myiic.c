@@ -235,15 +235,31 @@ unsigned char IIC_Read_One_Byte(unsigned char SlaveAddress,unsigned char REG_Add
 
 }						      
 
-
-
-
-
-
-
-
-
-
+//读取3个轴的数据
+//x,y,z:读取到的数据
+void ADXL345_RD_XYZ(s16 *x,s16 *y,s16 *z)
+{
+	u8 buf[6];
+	u8 i;
+	I2C_Start();  				 
+	I2C_SendByte(0xA6);	//发送写器件指令	 
+	I2C_WaitAck();	   
+    I2C_SendByte(0x32);   		//发送寄存器地址(数据缓存的起始地址为0X32)
+	I2C_WaitAck(); 	 										  		   
+ 
+ 	I2C_Start();  	 	   		//重新启动
+	I2C_SendByte(0xA6+1);	//发送读器件指令
+	I2C_WaitAck();
+	for(i=0;i<6;i++)
+	{
+		if(i==5)buf[i]=I2C_RadeByte(),I2C_NoAck();//读取一个字节,不继续再读,发送NACK  
+		else buf[i]=I2C_RadeByte(),I2C_Ack();	//读取一个字节,继续读,发送ACK 
+ 	}	        	   
+    I2C_Stop();					//产生一个停止条件
+	*x=(s16)(((u16)buf[1]<<8)+buf[0]); 	    
+	*y=(s16)(((u16)buf[3]<<8)+buf[2]); 	    
+	*z=(s16)(((u16)buf[5]<<8)+buf[4]); 	   
+}
 
 
 

@@ -10,6 +10,7 @@
 typedef struct
 {
 	_Bool Success_Flag;	//接收成功标志
+	_Bool Hardware_Init;	//硬件初始化接收成功标志
 	u8    FrameLength;		//帧长度
 	u16   CMD;					//数据命令
 	u8    DataNum;				//命令个数
@@ -33,7 +34,8 @@ typedef enum
 	UltrasonicData,   //超声波数据
 	EmergencyStop,    //急停状态
 	VersionNumber,    //版本号
-	RemainingBattery  //剩余电量
+	RemainingBattery, //剩余电量
+	HardwareParameter //硬件参数
 	
 }InquireCMD;//查询命令
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -55,6 +57,7 @@ extern union TEMPDATA{
 }TempTxData,TempRxData;
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void DealRXData(void);
-void SendEncoderAndIMU20Ms(void);
+void SendEncoderAndIMU20Ms(u8 sendflag);
+void GetIMU0ffset(void);
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 #endif

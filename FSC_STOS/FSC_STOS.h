@@ -89,6 +89,8 @@ extern OS_TCB *OSTCBRun;
 extern OS_TCB *OSTCBCur; 
 extern OS_TCB *OSTCBNext;
 
+extern u32 SysTimeCnt;
+
 /***************************************此处有注释的函数用户可任意调用****************************************/                          
 void OSStart(void); 
 void OSInit(void);

@@ -18,3 +18,4 @@
 ..\obj\timer.o: ..\HARDWARE\TIMER\include.h
 ..\obj\timer.o: ..\HARDWARE\ADC\adc.h
 ..\obj\timer.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdio.h
+..\obj\timer.o: ..\HARDWARE\KALMAN\kalman.h

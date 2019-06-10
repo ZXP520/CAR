@@ -18,7 +18,7 @@ void Init_ErrorDetect(void)
 }
 
 /*******************************************************************************
-* Function Name  : ReportError
+* Function Name  : ReportError 如果有错误1S上报
 * Description    : 上报错误
 * Input          : None
 * Output         : None
@@ -60,8 +60,25 @@ static void ReportError(void)
 ****************************************************************************** */
 void ErrorDetect(void)
 {
-	static u8 i=0,Time_Cnt=0,error1=0,error2=0,error3=0,error4=0,error5=0,error6=0,error7=0;
+	static u8 i=0,Time_Cnt=0,error0=0,error1=0,error2=0,error3=0,error4=0,error5=0,error6=0,error7=0;
 	Time_Cnt++;
+	
+	//通信检测200MS
+		if(DealData_Rx.Success_Flag)
+		 {
+			 error0=0;
+			 DealData_Rx.Success_Flag=0;
+		 }
+		 else if(error0>2)
+		 {
+			 AllWheel.Erroe_flag.bits.bit0=1;
+		 }
+		 else
+		 {
+			 error0++;
+		 }
+		 
+		 
 	//轮子故障检测5S
 	  //THREE
 		if(ThreeWheel.AimSpeed-ThreeWheel.NowSpeed>20 || ThreeWheel.AimSpeed-ThreeWheel.NowSpeed<-20)
@@ -173,8 +190,7 @@ void ErrorDetect(void)
 		for(i=0;i<3;i++){ImuData.OMagnetData[i]=ImuData.NMagnetData[i];}
 	
 		
-	//如果有错误
-		
+	//如果有错误1S
 	if(AllWheel.Erroe_flag.data&&Time_Cnt>10)
 	{
 		Time_Cnt=0;

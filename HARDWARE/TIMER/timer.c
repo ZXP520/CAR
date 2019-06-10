@@ -3,6 +3,7 @@
 #include "stm32f10x_tim.h"
 #include "control.h"	
 #include "include.h"
+#include "kalman.h"
 //////////////////////////////////////////////////////////////////////////////////	 
 //PWM输出初始化
 //arr：自动重装值
@@ -264,6 +265,60 @@ void TIM5_Configuration(void)//编码器接口设置TIM5/PA0-A相  PA1-B相
 	TIM_Cmd(TIM5, ENABLE);
 }
 
+/**********************************************************
+** 函数名: TIM6_Int_Init
+** 功能描述:  基本定时器配置
+** 输入参数: 无
+** 输出参数: 无
+** 说明：定时时间=(预分频数+1）*（计数值+1) /TIM6时钟(72MHz)，单位(s)
+   这里溢出时间t=(7200*10000)/72000000s=1s
+***********************************************************/
+void TIM6_Int_Init(u16 arr,u16 psc)
+{
+	TIM_TimeBaseInitTypeDef    TIM_TimeBaseStructure;
+	NVIC_InitTypeDef           NVIC_InitStructure;
+	
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE); //使能TIM6时钟
+	
+	//定时器TIM6初始化
+	TIM_TimeBaseStructure.TIM_Period = arr; //设置在下一个更新事件装入活动的自动重装载寄存器周期的值	
+	TIM_TimeBaseStructure.TIM_Prescaler =psc; //设置用来作为TIMx时钟频率除数的预分频值
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0; //设置时钟分割:TDTS = Tck_tim
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  //TIM向上计数模式
+	TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);  //根据指定的参数初始化TIMx的时间基数单位
+	
+	//允许更新中断，触发方式中断
+	TIM_ITConfig(TIM6,TIM_IT_Update, ENABLE);     //使能指定的TIM6中断,允许更新中断
+//	TIM_ITConfig(TIM6,TIM_IT_Trigger,ENABLE);
+	
+	//中断优先级NVIC设置
+	NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;  //TIM3中断
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;  //先占优先级0级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;  //从优先级3级
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道被使能
+	NVIC_Init(&NVIC_InitStructure);
+	
+	TIM_Cmd(TIM6, ENABLE);     //使能定时器6
+}
+ 
+/**********************************************************
+** 函数名: TIM6_IRQHandler
+** 功能描述: 定时器6的更新中断服务程序
+** 输入参数: 无
+** 输出参数: 无
+***********************************************************/
+u32 Time6_Cnt=0;
+void TIM6_IRQHandler(void)
+{
+	
+	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
+	{
+		Time6_Cnt++;
+		TIM_ClearITPendingBit(TIM6,TIM_IT_Update);//清除更新中断标志位
+	}
+}
+
+
 
 
 
@@ -288,6 +343,7 @@ void Time_Config(void)
 	TIM3_Configuration();
 	TIM4_PWM_Init(TIM8_Period-1,30-1);  //分频。PWM频率=72000/5/1200=12Khz
 	TIM5_Configuration();
+	//TIM6_Int_Init(72-1,100);           //100us	
 	TIM8_PWM_Init(TIM8_Period-1,30-1);	//分频。PWM频率=72000/5/1200=12Khz
 }
 

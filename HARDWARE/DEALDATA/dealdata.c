@@ -8,7 +8,9 @@
 #include "Encoder.h"
 #include "bsp_usart.h"
 #include "include.h"
-#include "errordetect.h"
+#include "errordetect.h" 
+#include "kalman.h"
+#include "myiic.h"
 
 //处理接收到的数据，中断调用
 DEALDATA_RX DealData_Rx;
@@ -50,6 +52,46 @@ static void Respond_To_Ros(void)
 }
 
 
+void GetIMU0ffset(void)
+{
+	static u8 GetIMUData_cnt=0,GetIMUData_cnt1=0;
+	while(GetIMUData_cnt<101)
+	{
+		if(GetIMUData_cnt==0)
+		{
+			GetData(ITG3205_Addr,GYRO_XOUT_H);
+			GetData(ITG3205_Addr,GYRO_YOUT_H);
+		  GetData(ITG3205_Addr,GYRO_ZOUT_H);						//陀螺仪数据
+			
+			GetQMC5883Data(ADXL345_Addr,ACCEL_XOUT_H);
+			GetQMC5883Data(ADXL345_Addr,ACCEL_YOUT_H);
+			GetQMC5883Data(ADXL345_Addr,ACCEL_ZOUT_H);					//加速度计数据
+			
+			GetQMC5883Data(HMC5883L_Addr,GX_H);
+			GetQMC5883Data(HMC5883L_Addr,GY_H);
+			GetQMC5883Data(HMC5883L_Addr,GZ_H);					//磁力计数据
+			}
+		else
+		{
+			ImuData.OffsetGYData[0]+=(float)((int16_t)GetData(ITG3205_Addr,GYRO_XOUT_H))*0.01;
+			ImuData.OffsetGYData[1]+=(float)((int16_t)GetData(ITG3205_Addr,GYRO_YOUT_H))*0.01;
+			ImuData.OffsetGYData[2]+=(float)((int16_t)GetData(ITG3205_Addr,GYRO_ZOUT_H))*0.01;						//陀螺仪数据
+			
+			ImuData.OffsetAccelData[0]+=(float)((int16_t)GetQMC5883Data(ADXL345_Addr,ACCEL_XOUT_H))*0.01;
+			ImuData.OffsetAccelData[1]+=(float)((int16_t)GetQMC5883Data(ADXL345_Addr,ACCEL_YOUT_H))*0.01;
+			ImuData.OffsetAccelData[2]+=(float)((int16_t)GetQMC5883Data(ADXL345_Addr,ACCEL_ZOUT_H))*0.01;					//加速度计数据
+			
+			ImuData.OffsetMagnetData[0]+=(float)((int16_t)GetQMC5883Data(HMC5883L_Addr,GX_H))*0.01;
+			ImuData.OffsetMagnetData[1]+=(float)((int16_t)GetQMC5883Data(HMC5883L_Addr,GY_H))*0.01;
+			ImuData.OffsetMagnetData[2]+=(float)((int16_t)GetQMC5883Data(HMC5883L_Addr,GZ_H))*0.01;					//磁力计数据
+
+			delay_ms(5);
+		}
+		GetIMUData_cnt++;
+	}
+
+}
+
 /*******************************************************************************
 * Function Name  : DealRXData
 * Description    : 每20MS上传编码器陀螺仪的数据
@@ -57,12 +99,12 @@ static void Respond_To_Ros(void)
 * Output         : None
 * Return         : None 
 ****************************************************************************** */
-void SendEncoderAndIMU20Ms(void)
+void SendEncoderAndIMU20Ms(u8 sendflag)
 {
 	s16 Cheksum=0;//校验和
 	static u8 i=0,Time_Cnt=0; 
 	Time_Cnt++;
-	
+	GetIMU0ffset();
 	//因为IIC读取数据时间长，所以分时取数据
 	switch(Time_Cnt)
 	{
@@ -82,9 +124,9 @@ void SendEncoderAndIMU20Ms(void)
 		}
 		case 2:  //5ms
 		{
-			TempTxData.InTempData[4]=GetData(ITG3050_Addr,GYRO_XOUT_H);
-			TempTxData.InTempData[5]=GetData(ITG3050_Addr,GYRO_YOUT_H);
-			TempTxData.InTempData[6]=GetData(ITG3050_Addr,GYRO_ZOUT_H);						//陀螺仪数据
+			TempTxData.InTempData[4]=GetData(ITG3205_Addr,GYRO_XOUT_H);
+			TempTxData.InTempData[5]=GetData(ITG3205_Addr,GYRO_YOUT_H);
+			TempTxData.InTempData[6]=GetData(ITG3205_Addr,GYRO_ZOUT_H);						//陀螺仪数据
 			//用于错误检测
 			ImuData.NGYData[0]=TempTxData.InTempData[4];
 			ImuData.NGYData[1]=TempTxData.InTempData[5];
@@ -93,9 +135,10 @@ void SendEncoderAndIMU20Ms(void)
 		}
 		case 3:  //10ms
 		{
-			TempTxData.InTempData[7]=GetData(ADXL345_Addr,ACCEL_XOUT_H);
-			TempTxData.InTempData[8]=GetData(ADXL345_Addr,ACCEL_YOUT_H);
-			TempTxData.InTempData[9]=GetData(ADXL345_Addr,ACCEL_ZOUT_H);					//加速度计数据
+			TempTxData.InTempData[7]=GetQMC5883Data(ADXL345_Addr,ACCEL_XOUT_H);
+			TempTxData.InTempData[8]=GetQMC5883Data(ADXL345_Addr,ACCEL_YOUT_H);
+			TempTxData.InTempData[9]=GetQMC5883Data(ADXL345_Addr,ACCEL_ZOUT_H);					//加速度计数据
+			
 			//用于错误检测
 			ImuData.NAccelData[0]=TempTxData.InTempData[7];
 			ImuData.NAccelData[1]=TempTxData.InTempData[8];
@@ -130,8 +173,15 @@ void SendEncoderAndIMU20Ms(void)
 			TXData.ChRxData[TXData.ChRxData[2]-2]=Cheksum&0xFF; 				//校验和
 			TXData.ChRxData[TXData.ChRxData[2]-1]=(Cheksum>>8)&0xFF;
 			//DMA串口发送数据
-			USART2_DMA_TX(TXData.ChRxData,TXData.ChRxData[2]);
+			if(sendflag)
+			{
+				USART2_DMA_TX(TXData.ChRxData,TXData.ChRxData[2]);
+			}
+			//陀螺仪角度计算
+			Angle_Calcu1();
 			Time_Cnt=0;
+			
+			
 			break;
 		}
 		default:break;
@@ -259,16 +309,16 @@ void DealRXData(void)
 			{
 				case 6:  //3轴
 				{
-					TempTxData.InTempData[0]=GetData(ITG3050_Addr,GYRO_XOUT_H);
-					TempTxData.InTempData[1]=GetData(ITG3050_Addr,GYRO_YOUT_H);
-					TempTxData.InTempData[2]=GetData(ITG3050_Addr,GYRO_ZOUT_H);						//陀螺仪数据
+					TempTxData.InTempData[0]=GetData(ITG3205_Addr,GYRO_XOUT_H);
+					TempTxData.InTempData[1]=GetData(ITG3205_Addr,GYRO_YOUT_H);
+					TempTxData.InTempData[2]=GetData(ITG3205_Addr,GYRO_ZOUT_H);						//陀螺仪数据
 					break;
 				}
 				case 12: //6轴
 				{
-					TempTxData.InTempData[0]=GetData(ITG3050_Addr,GYRO_XOUT_H);
-					TempTxData.InTempData[1]=GetData(ITG3050_Addr,GYRO_YOUT_H);
-					TempTxData.InTempData[2]=GetData(ITG3050_Addr,GYRO_ZOUT_H);						//陀螺仪数据
+					TempTxData.InTempData[0]=GetData(ITG3205_Addr,GYRO_XOUT_H);
+					TempTxData.InTempData[1]=GetData(ITG3205_Addr,GYRO_YOUT_H);
+					TempTxData.InTempData[2]=GetData(ITG3205_Addr,GYRO_ZOUT_H);						//陀螺仪数据
 			
 					TempTxData.InTempData[3]=GetData(ADXL345_Addr,ACCEL_XOUT_H);
 					TempTxData.InTempData[4]=GetData(ADXL345_Addr,ACCEL_YOUT_H);
@@ -277,9 +327,9 @@ void DealRXData(void)
 				}
 				case 18:  //9轴
 				{
-					TempTxData.InTempData[0]=GetData(ITG3050_Addr,GYRO_XOUT_H);
-					TempTxData.InTempData[1]=GetData(ITG3050_Addr,GYRO_YOUT_H);
-					TempTxData.InTempData[2]=GetData(ITG3050_Addr,GYRO_ZOUT_H);						//陀螺仪数据
+					TempTxData.InTempData[0]=GetData(ITG3205_Addr,GYRO_XOUT_H);
+					TempTxData.InTempData[1]=GetData(ITG3205_Addr,GYRO_YOUT_H);
+					TempTxData.InTempData[2]=GetData(ITG3205_Addr,GYRO_ZOUT_H);						//陀螺仪数据
 			
 					TempTxData.InTempData[3]=GetData(ADXL345_Addr,ACCEL_XOUT_H);
 					TempTxData.InTempData[4]=GetData(ADXL345_Addr,ACCEL_YOUT_H);
@@ -312,6 +362,19 @@ void DealRXData(void)
 		{
 			TempTxData.ChTempData[0]=AllWheel.Electricity;
 			break;  
+		}
+		case HardwareParameter://硬件参数
+		{
+			TempTxData.InTempData[0]=Wheel_D;      					//轮子直径
+			TempTxData.InTempData[1]=Wheel_SPACING; 				//轮间距
+			TempTxData.InTempData[2]=Wheel_RATIO;						//电机减速比
+			TempTxData.InTempData[3]=ENCODER_LINE;  				//编码器线数
+			TempTxData.InTempData[4]=VERSIONNUMBER; 				//版本号
+			TempTxData.ChTempData[10]=AllWheel.Electricity; //电量
+			DealData_Rx.Hardware_Init=1;
+			//OSTaskStateSet(Task3,TASK_RUNNING);
+			//OSTaskStateSet(Task5,TASK_RUNNING);
+			break; 
 		}
 		
 		//设置命令

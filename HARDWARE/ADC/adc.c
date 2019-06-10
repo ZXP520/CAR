@@ -81,7 +81,6 @@ void Get_PowerData(void)
 	{
 		temp_val=temp_val/5;
 		AllWheel.Electricity=temp_val*3.3/4096;
-		//printf("%d\n",Mach.adc);
 		temp_val=0;
 		time_cnt=0;
 	}

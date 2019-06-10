@@ -29,7 +29,8 @@
 
 void I2C_GPIO_Config(void);
 u8 IIC_Write_One_Byte(u8 daddr,u8 addr,u8 data);
-u8 IIC_Read_One_Byte(u8 daddr,u8 addr);	  
+u8 IIC_Read_One_Byte(u8 daddr,u8 addr);
+void ADXL345_RD_XYZ(s16 *x,s16 *y,s16 *z);
 #endif
 
 
