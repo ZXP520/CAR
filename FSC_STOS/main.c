@@ -158,8 +158,14 @@ void Task3(void)
 		 SendEncoderAndIMU20Ms(DealData_Rx.Hardware_Init);	
 			if(flag)
 			{
-				SetTurn(TurnLeft,120);
-				SetTurn(TurnRight,120);
+				SetTurn(TurnRight,120,100);
+				SetTurn(Straight,5000,200);
+				SetTurn(TurnLeft,120,100);
+				SetTurn(TurnRight,360,100);
+				SetTurn(Straight,5000,200);
+				SetTurn(TurnRight,90,100);
+				SetTurn(TurnLeft,90,100);
+				
 				flag=0;
 			}
   	 OS_delayMs(5);				 
@@ -183,7 +189,7 @@ void Task4(void) //任务4
 		 
 		 if(OSTaskStateGet(Task6)==TASK_PAUSING)
 		 {
-			 u3_printf("N:%.2f\n",ImuData.Yaw);
+			 //u3_printf("N:%.2f\n",ImuData.Yaw);
 		 }
 		 //u3_printf("%.2f	%.2f	%.2f	%.2f	%.2f	%.2f\n",Angle_accX,Angle_accY,angle2,Gx,Gy,Gz);
   	 OS_delayMs(500); 			 //500ms进入一次
@@ -204,14 +210,14 @@ void Task5(void)
 }
 
 /**************************************************************************
-任务6 5MS转角等控制
+任务6 5MS转角等控制 运动控制任务
 **************************************************************************/
 void Task6(void)  
 {
 	while(1) 
 	 {	
 		 AllControlTrun();
-     OS_delayMs(5); 				//100Ms进一次
+     OS_delayMs(5); 				//5Ms进一次
 	 }
 }
 /********************************************************************************************/

@@ -422,8 +422,8 @@ void OmniWheelscontrol(s16 Vx,s16 Vy,s16 W,s16 a)
 {
 	static double Va,Vb,Vc,DW;
 	Vx=-Vx;
-	//DW=-W/100;//数据放大了100倍
-	DW=-W;
+	DW=-W/100;//数据放大了100倍
+	//DW=-W;
 	Va=Vx*cos(a)+Vy*sin(a)+DW*Wheel_SPACING;
 	Vb=Vx*(-cos(PI/3)*cos(a)+sin(PI/6)*sin(a))+Vy*(-cos(PI/3)*sin(a)-sin(PI/3)*cos(a))+DW*Wheel_SPACING;
 	Vc=Vx*(-sin(PI/6)*cos(a)+cos(PI/6)*sin(a))+Vy*(-sin(PI/6)*sin(a)+cos(PI/6)*cos(a))+DW*Wheel_SPACING;
