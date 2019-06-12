@@ -9,6 +9,8 @@ extern union Data{
     s16  InRxData[50];
     u8 	 ChRxData[100];
 }TXData,RXData;
+
+extern u8 USART3_Rx_Buff[MAX_RX_CNT];
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void USART2_Config(uint32_t BaudRate);
 void USART3_Config(uint32_t BaudRate);

@@ -11,6 +11,7 @@
 #include "errordetect.h" 
 #include "kalman.h"
 #include "myiic.h"
+#include <math.h>
 
 //处理接收到的数据，中断调用
 DEALDATA_RX DealData_Rx;
@@ -420,3 +421,141 @@ void DealRXData(void)
 		Respond_To_Ros();
 	}
 }
+
+
+
+/*******************************************************************************
+* Function Name  : DealRXData
+* Description    : 处理标签数据
+* Input          : None 
+* Output         : None
+* Return         : None 
+****************************************************************************** */
+//原始数据
+//mr 07 00000aeb 00000da6 00000ef3 00000000 0237 bf 40224022 t4:0
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+//定义数据结构体
+UWBDATA UWBData;
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+void DealUWBData(void)
+{
+	u8 i=0,j=0;
+	u8 temp=0;
+	for(i=0;i<200;i++)
+	{
+		if(USART3_Rx_Buff[i]=='m'&&USART3_Rx_Buff[i+1]=='r'&&USART3_Rx_Buff[i+2]==' '&&USART3_Rx_Buff[i+3]=='0'&&USART3_Rx_Buff[i+4]=='7')
+		{
+			//A0
+			for(j=0;j<8;j++)
+			{
+				UWBData.A0=UWBData.A0<<4;
+				temp=USART3_Rx_Buff[i+6+j];
+				if(temp>='0'&&temp<='9')
+				{
+					temp=temp-'0';
+				}
+				else if(temp>='a'&&temp<='f')
+				{
+					temp=temp-0x57;
+				}
+				UWBData.A0+= temp;
+			}
+			
+			//A1
+			for(j=0;j<8;j++)
+			{
+				UWBData.A1=UWBData.A1<<4;
+				temp=USART3_Rx_Buff[i+15+j];
+				if(temp>='0'&&temp<='9')
+				{
+					temp=temp-'0';
+				}
+				else if(temp>='a'&&temp<='f')
+				{
+					temp=temp-0x57;
+				}
+				UWBData.A1+= temp;
+			}
+			
+			
+			//A2
+			for(j=0;j<8;j++)
+			{
+				UWBData.A2=UWBData.A2<<4;
+				temp=USART3_Rx_Buff[i+24+j];
+				if(temp>='0'&&temp<='9')
+				{
+					temp=temp-'0';
+				}
+				else if(temp>='a'&&temp<='f')
+				{
+					temp=temp-0x57;
+				}
+				UWBData.A2+= temp;
+			}
+			
+			
+			//A3
+			for(j=0;j<8;j++)
+			{
+				UWBData.A3=UWBData.A3<<4;
+				temp=USART3_Rx_Buff[i+33+j];
+				if(temp>='0'&&temp<='9')
+				{
+					temp=temp-'0';
+				}
+				else if(temp>='a'&&temp<='f')
+				{
+					temp=temp-0x57;
+				}
+				UWBData.A3+= temp;
+			}	
+			calcPhonePosition(UWBData.x1,UWBData.y1,UWBData.A0,
+												UWBData.x2,UWBData.y2,UWBData.A1,
+												UWBData.x3,UWBData.y3,UWBData.A2);
+			break;
+		}
+	}
+}
+/*---------------------------------------------------------------------------------------------------------------------------------
+三边定位法
+
+设未知点位置为 (x, y)， 令其中的第一个球形 P0 的球心坐标为 (0, 0)，P2 处于相同纵坐标，球心坐标为 (d, 0)，P1 球心坐标为 (i, j)，
+三个球形半径分别为 r1, r2, r3，z为三球形相交点与水平面高度。则有：
+
+r12 = x2 + y2 + z2                P0(0,0)		P1(0,2.5)   P2(2.5,0)
+r22 = (x - d)2 + y2 + z2
+r32 = (x - i)2 + (y - j)2 + z2
+当 z = 0 时， 即为三个圆在水平面上相交为一点，首先解出 x:
+
+x = (r12 - r22 + d2) / 2d
+将公式二变形，将公式一的 z2 代入公式二，再代入公式三得到 y 的计算公式：
+
+y = (r12 - r32 - x2 + (x - i)2 + j2) / 2j
+
+-------------------------------------------------------------------------------------------------------------------------------------*/
+
+	  // 三边测量法
+    // 通过三点坐标和到三点的距离，返回第4点位置
+void calcPhonePosition   (double x1, double y1, double d1,
+													double x2, double y2, double d2,
+													double x3, double y3, double d3) 
+{
+		
+		double a11 = 2 * (x1 - x3);
+		double a12 = 2 * (y1 - y3);
+		double b1  = pow(x1, 2) - pow(x3, 2)
+						   + pow(y1, 2) - pow(y3, 2)
+						   + pow(d3, 2) - pow(d1, 2);
+		double a21 = 2 * (x2 - x3);
+		double a22 = 2 * (y2 - y3);
+		double b2  = pow(x2, 2) - pow(x3, 2)
+						   + pow(y2, 2) - pow(y3, 2)
+						   + pow(d3, 2) - pow(d2, 2);
+
+		UWBData.X = ((b1 * a22 - a12 * b2) / (a11 * a22 - a12 * a21))/10;
+		UWBData.Y = ((a11 * b2 - b1 * a21) / (a11 * a22 - a12 * a21))/10;
+}
+
+
+

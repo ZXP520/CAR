@@ -44,6 +44,7 @@
 #include "errordetect.h"
 #include "myiic.h"
 #include "controlturn.h"	
+#include <math.h>
 
 
 /******************************创建任务参数*************************/
@@ -103,7 +104,7 @@ int main(void)
     OSTaskCreate("Task2",Task2,(OS_STK*)&Task2_Stk[Task2_StkSize-1],TASK_RUNNING); //创建任务2
     OSTaskCreate("Task3",Task3,(OS_STK*)&Task3_Stk[Task3_StkSize-1],TASK_RUNNING); //创建任务3 任务暂停
 	  OSTaskCreate("Task4",Task4,(OS_STK*)&Task4_Stk[Task4_StkSize-1],TASK_RUNNING); //创建任务4
-		OSTaskCreate("Task5",Task5,(OS_STK*)&Task5_Stk[Task5_StkSize-1],TASK_PAUSING); //创建任务5 任务暂停
+		OSTaskCreate("Task5",Task5,(OS_STK*)&Task5_Stk[Task5_StkSize-1],TASK_RUNNING); //创建任务5 任务暂停
 		OSTaskCreate("Task6",Task6,(OS_STK*)&Task6_Stk[Task6_StkSize-1],TASK_PAUSING); //创建任务6 
 	  /***********************************************************************************/
     OSStart();//OS开始运行
@@ -121,10 +122,19 @@ int main(void)
 **************************************************************************/
 void Task1(void)
 { 	
+	static u16 time_cnt=0;
 	while(1) 
 	 {
 		 //PID控制应该放到中断中调速	 
 		 Get_Encoder();
+		 if(time_cnt<500)
+		 {
+			 time_cnt++;
+		 }
+		 else
+		 {
+			  UWBTurnToX();
+		 }
   	 OS_delayMs(10); 
 	 }	
 }
@@ -158,6 +168,7 @@ void Task3(void)
 		 SendEncoderAndIMU20Ms(DealData_Rx.Hardware_Init);	
 			if(flag)
 			{
+				/*
 				SetTurn(TurnRight,120,100);
 				SetTurn(Straight,5000,200);
 				SetTurn(TurnLeft,120,100);
@@ -165,9 +176,10 @@ void Task3(void)
 				SetTurn(Straight,5000,200);
 				SetTurn(TurnRight,90,100);
 				SetTurn(TurnLeft,90,100);
-				
+				*/
 				flag=0;
 			}
+		
   	 OS_delayMs(5);				 
 	 }			
 }
@@ -177,6 +189,12 @@ void Task3(void)
 **************************************************************************/
 void Task4(void) //任务4  
 {
+	UWBData.x1=0;
+	UWBData.y1=0;
+	UWBData.x2=0;
+	UWBData.y2=1350;
+	UWBData.x3=1980;
+	UWBData.y3=0;
 	while(1) 
 	 {		
 		 //如果任务5处于暂停状态，且硬件初始化成功，则开启任务5
@@ -192,7 +210,7 @@ void Task4(void) //任务4
 			 //u3_printf("N:%.2f\n",ImuData.Yaw);
 		 }
 		 //u3_printf("%.2f	%.2f	%.2f	%.2f	%.2f	%.2f\n",Angle_accX,Angle_accY,angle2,Gx,Gy,Gz);
-  	 OS_delayMs(500); 			 //500ms进入一次
+		 OS_delayMs(500); 			 //500ms进入一次
 	 }
 }
 

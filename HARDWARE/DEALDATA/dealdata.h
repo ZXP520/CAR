@@ -56,8 +56,30 @@ extern union TEMPDATA{
     u8 	 ChTempData[30];
 }TempTxData,TempRxData;
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+typedef struct
+{
+	u32 A0;
+	u32 A1;
+	u32 A2;
+	u32 A3;
+	u32 x1;
+	u32 y1;
+	u32 x2;
+	u32 y2;
+	u32 x3;
+	u32 y3;
+	double X;
+	double Y;
+	
+}UWBDATA;
+extern UWBDATA UWBData;
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void DealRXData(void);
 void SendEncoderAndIMU20Ms(u8 sendflag);
 void GetIMU0ffset(void);
+void DealUWBData(void);
+void calcPhonePosition   (double x1, double y1, double d1,
+													double x2, double y2, double d2,
+													double x3, double y3, double d3);
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 #endif

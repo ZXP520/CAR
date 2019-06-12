@@ -10,6 +10,7 @@
 #include "fsc_stos.h"
 #include "control.h"	
 #include "bsp_usart.h"
+#include "dealdata.h"
 
 #define datatype int
 #define MAX 35
@@ -133,6 +134,7 @@ void AllControlTrun(void)
 	{
 		case 0:						//队列为空，暂停任务6
 		{
+			Task6_Step=0;
 			OSTaskStateSet(Task6,TASK_PAUSING);
 			break;
 		}
@@ -189,7 +191,10 @@ void ControlTrun(s8 speed,u16 angle)
 {
 	static u8 Trun_Flag=0;
 	static float FirstAngle=0;
-	angle=angle-10;
+	if(angle>90)
+	{
+		angle=angle-10;
+	}
 	//没去零飘返回
 	switch(Trun_Flag)
 	{
@@ -358,7 +363,60 @@ void ControlStraight(int speed,int settime)
 	}
 }
 
-
+void UWBTurnToX(void)
+{
+	 static double oldX=0,oldY=0,result=0;
+	 static u8 Turn_Step=0,time_cnt=0;
+	 switch(Turn_Step)
+	 {
+		 case 0:
+		 {
+			 time_cnt++;
+			 if(time_cnt>200)
+			 {
+				 oldY=UWBData.Y;
+				 oldX=UWBData.X;
+				 Turn_Step=1;
+				 time_cnt=0;
+			 }
+			 break;
+		 }
+		 case 1:
+		 {
+			 SetTurn(Straight,3000,200);
+			 Turn_Step=2;
+			 break;
+		 }
+		 case 2:
+		 {
+			 if(OSTaskStateGet(Task6)==TASK_PAUSING&&Task6_Step==0)//动作完成，任务6就会暂停
+			 {
+				  time_cnt++;
+				  if(time_cnt>200)
+					{
+						result = atan ((UWBData.Y-oldY)/(UWBData.X-oldX)) * 180 / PI;  //弧度转化为度
+						if(result>0)
+						{
+							SetTurn(TurnRight,abs(result),100);
+						}
+						else
+						{
+							SetTurn(TurnRight,180+result,100);
+						}
+						
+						Turn_Step=3;
+						time_cnt=0;
+					}
+			 }
+			 break;
+		 }
+		 case 3:
+		 {
+			 break;
+		 }
+		 default:break;
+	 }
+}
 
 
 

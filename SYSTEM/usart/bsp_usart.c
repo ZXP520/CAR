@@ -190,7 +190,7 @@ void DMA1_Channel6_IRQHandler(void)
 
 //-----------------------------串口 3--------------------------------------------------------
 
-static u8 USART3_Rx_Buff[MAX_RX_CNT];
+u8 USART3_Rx_Buff[MAX_RX_CNT];
 static u8 USART3_Tx_Buff[MAX_RX_CNT];
 //共用体定义
 union Data TXData,RXData;
@@ -320,6 +320,7 @@ void USART3_IRQHandler(void)
     DMA_Cmd (DMA1_Channel3,DISABLE);
 		//memcpy(RXData.ChRxData,USART3_Rx_Buff,DMA_GetCurrDataCounter(DMA1_Channel3));
     //Rx_Data_2_Queue( USART3_Rx_Buff, MAX_RX_CNT - DMA_GetCurrDataCounter(DMA1_Channel6));
+		DealUWBData();
     DMA_SetCurrDataCounter(DMA1_Channel3,MAX_RX_CNT);
     DMA_Cmd (DMA1_Channel3,ENABLE);
 		
