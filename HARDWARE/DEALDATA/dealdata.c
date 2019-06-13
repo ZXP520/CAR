@@ -243,8 +243,11 @@ static u8 ExtractData(void)
 * Output         : None
 * Return         : None 
 ****************************************************************************** */
+//手柄按键结构体
+PSBKEY PSBKey;
 void DealRXData(void)
 {
+	static u8 SChassisAttitudeFlag=0;
 	if(ExtractData()){;}
 	else{return;}
 	switch(DealData_Rx.CMD)//命令解析
@@ -408,7 +411,27 @@ void DealRXData(void)
 		
 		case SChassisAttitude:  //底盘姿态
 		{
-			OmniWheelscontrol(TempRxData.InTempData[0],TempRxData.InTempData[1],TempRxData.InTempData[2],0);
+			if(TempRxData.InTempData[0] | TempRxData.InTempData[1] | TempRxData.InTempData[2])//底盘速度不为0设置底盘速度
+			{
+				SChassisAttitudeFlag=1;
+				OmniWheelscontrol(TempRxData.InTempData[0],TempRxData.InTempData[1],TempRxData.InTempData[2],0);
+			}
+			else if(SChassisAttitudeFlag)//设置了底盘速度
+			{
+				PSBKey.GREEN=0;
+				PSBKey.RED=0  ;
+				PSBKey.BLUE=0 ;
+				PSBKey.PINK=0	;
+				OmniWheelscontrol(0,0,0,0);
+				SChassisAttitudeFlag=0;
+			}
+			switch(TempRxData.InTempData[3])
+			{
+				case PSB_GREEN: PSBKey.GREEN=1;break;
+				case PSB_RED:	  PSBKey.RED=1  ;break;
+				case PSB_BLUE: 	PSBKey.BLUE=1 ;break;
+				case PSB_PINK: 	PSBKey.PINK=1	;break;
+			}
 			break;
 		}
 		//正确的命令才响应
@@ -517,6 +540,47 @@ void DealUWBData(void)
 		}
 	}
 }
+
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+绝对值
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+double UWBAbs(double data)
+{
+	if(data<0)
+	{
+		return -data;
+	}
+	else
+	{
+		return data;
+	}
+}
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+数据稳定性判断
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+void JudgeUWBXYStable(void)
+{
+	static double LastX=0,LastY=0;
+	static u8 StableFlag=0;
+	if(UWBAbs(UWBData.Y-LastY)<10 && UWBAbs(UWBData.X-LastX)<10)//偏差小于10cm累计20次则算稳定
+	{
+		StableFlag++;
+	}
+	else
+	{
+		UWBData.StableFlag=0;
+		StableFlag=0;
+	}
+	if(StableFlag>20)
+	{
+		UWBData.StableFlag=1;
+		StableFlag=0;
+	}
+	LastY=UWBData.Y;
+	LastX=UWBData.X;
+}
+
 /*---------------------------------------------------------------------------------------------------------------------------------
 三边定位法
 
@@ -555,6 +619,7 @@ void calcPhonePosition   (double x1, double y1, double d1,
 
 		UWBData.X = ((b1 * a22 - a12 * b2) / (a11 * a22 - a12 * a21))/10;
 		UWBData.Y = ((a11 * b2 - b1 * a21) / (a11 * a22 - a12 * a21))/10;
+		JudgeUWBXYStable();//数据稳定判断
 }
 
 

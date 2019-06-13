@@ -127,13 +127,13 @@ void Task1(void)
 	 {
 		 //PID控制应该放到中断中调速	 
 		 Get_Encoder();
-		 if(time_cnt<500)
+		 if(time_cnt<100)
 		 {
 			 time_cnt++;
 		 }
 		 else
 		 {
-			  UWBTurnToX();
+			  UWBTurnToX(100,0);
 		 }
   	 OS_delayMs(10); 
 	 }	
@@ -222,7 +222,7 @@ void Task5(void)
 	while(1) 
 	 {	
 		 //故障检测
-		 //ErrorDetect();
+		 ErrorDetect();
      OS_delayMs(100); 				//100Ms进一次
 	 }
 }

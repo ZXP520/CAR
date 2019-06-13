@@ -6,6 +6,22 @@
 #define RXDATALENTH 0x0A //接收数据长度
 #define TXDATALENTH 0x0008 //发送数据长度
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+//手柄按键
+#define PSB_GREEN       13
+#define PSB_RED         14
+#define PSB_BLUE        15
+#define PSB_PINK        16
+
+typedef struct
+{
+	u8	GREEN;
+	u8 	RED;
+	u8	BLUE;
+	u8  PINK;
+	
+}PSBKEY;
+extern PSBKEY PSBKey;
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //数据接收结构体
 typedef struct
 {
@@ -70,7 +86,7 @@ typedef struct
 	u32 y3;
 	double X;
 	double Y;
-	
+	u8  StableFlag;//稳定标志
 }UWBDATA;
 extern UWBDATA UWBData;
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/

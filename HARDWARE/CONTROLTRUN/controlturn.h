@@ -20,6 +20,6 @@ void AllControlTrun(void);
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void ControlTrun(s8 speed,u16 angle);
 void ControlStraight(int speed,int settime);
-void UWBTurnToX(void);
+void UWBTurnToX(double x,double y);
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 #endif

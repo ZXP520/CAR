@@ -30,6 +30,9 @@ queue Queue;
 void initQueue(void )
 {
     Queue.front = Queue.endline = 0;
+	  memset(Queue.data,0,MAX);
+		memset(Queue.data1,0,MAX);
+		memset(Queue.data2,0,MAX);
 }
 
 //入队
@@ -157,8 +160,12 @@ void AllControlTrun(void)
 			ControlTrun(abs(Queue.data2[Queue.front-1]),Queue.data1[Queue.front-1]);
 			break;
 		}
-		case Stop:
+		case Stop:			  //终止所有任务，并清空任务队列
 		{
+			Task6_Step=0;
+			initQueue();
+			OmniWheelscontrol(0,0,0,0);
+			OSTaskStateSet(Task6,TASK_PAUSING);
 			break;
 		}
 		default:break;
@@ -247,7 +254,7 @@ void ControlTrun(s8 speed,u16 angle)
 
 /**************************************************************************
 函数功能：控制全向轮小车直行功能
-入口参数peed速度  settime直行时间
+入口参数peed速度  settime直行时间 ms
 返回  值：无
 **************************************************************************/
 void ControlStraight(int speed,int settime)
@@ -363,21 +370,30 @@ void ControlStraight(int speed,int settime)
 	}
 }
 
-void UWBTurnToX(void)
+
+void UWBTurnToX(double x,double y)
 {
 	 static double oldX=0,oldY=0,result=0;
-	 static u8 Turn_Step=0,time_cnt=0;
+	 static u8 Turn_Step=0;
+	 
+	 if(PSBKey.GREEN==0)//遥控器绿色按键没按
+	 {
+		Turn_Step=0;
+		oldX=0;
+		oldY=0;
+		result=0;
+		return;
+	 }
 	 switch(Turn_Step)
 	 {
-		 case 0:
+		 case 0:  //取初始角度
 		 {
-			 time_cnt++;
-			 if(time_cnt>200)
+			 if(UWBData.StableFlag)//数据稳定
 			 {
+				 UWBData.StableFlag=0;
 				 oldY=UWBData.Y;
 				 oldX=UWBData.X;
-				 Turn_Step=1;
-				 time_cnt=0;
+				 Turn_Step=1;	
 			 }
 			 break;
 		 }
@@ -387,31 +403,142 @@ void UWBTurnToX(void)
 			 Turn_Step=2;
 			 break;
 		 }
-		 case 2:
+		 case 2:  //角度矫正，平行于X轴
 		 {
 			 if(OSTaskStateGet(Task6)==TASK_PAUSING&&Task6_Step==0)//动作完成，任务6就会暂停
 			 {
-				  time_cnt++;
-				  if(time_cnt>200)
+				  if(UWBData.StableFlag)//数据稳定
 					{
+						UWBData.StableFlag=0;
 						result = atan ((UWBData.Y-oldY)/(UWBData.X-oldX)) * 180 / PI;  //弧度转化为度
-						if(result>0)
+						
+						//角度修正
+						if(result>=0)
 						{
-							SetTurn(TurnRight,abs(result),100);
+							if(UWBData.X>=oldX)
+							{
+								SetTurn(TurnRight,abs(result),100);
+							}
+							else
+							{
+								SetTurn(TurnLeft,180-result,100);
+							}
 						}
 						else
 						{
-							SetTurn(TurnRight,180+result,100);
+							if(UWBData.X>=oldX)
+							{
+								SetTurn(TurnLeft,abs(result),100);
+							}
+							else
+							{
+								SetTurn(TurnRight,180+result,100);
+							}
 						}
-						
 						Turn_Step=3;
-						time_cnt=0;
 					}
 			 }
 			 break;
 		 }
-		 case 3:
+		 case 3:  //走到X点，并再次角度矫正
 		 {
+			 oldY=UWBData.Y;//取坐标
+			 oldX=UWBData.X;
+			 if(UWBData.X<x)       //现在的X轴小于设定的，直行
+			 {
+				 SetTurn(Straight,30000,200);
+				 Turn_Step=4;
+			 }
+			 else if(UWBData.X>x)  //现在的X轴小于设定的，旋转180直行 
+			 {
+				 SetTurn(TurnRight,180,100);
+				 SetTurn(Straight,30000,200);
+				 Turn_Step=4;
+			 }
+			 else
+			 {
+				 Turn_Step=4;
+			 }
+			 
+			 break;
+		 }
+		 case 4:   //到达X轴
+		 {
+			 if(abs(UWBData.X-x)<20)//距离小于20cm
+			 {
+				 SetTurn(Stop,0,0);
+				 //PSBKey.GREEN=0;
+			   Turn_Step=5;
+			 }
+			 break;
+		 }
+		 case 5:   //再次矫正
+		 {
+			 if(OSTaskStateGet(Task6)==TASK_PAUSING&&Task6_Step==0)//动作完成，任务6就会暂停
+			 {
+				  if(UWBData.StableFlag)//数据稳定
+					{
+						UWBData.StableFlag=0;
+						result = atan ((UWBData.Y-oldY)/(UWBData.X-oldX)) * 180 / PI;  //弧度转化为度
+						
+						//角度修正
+						if(result>=0)
+						{
+							if(UWBData.X>=oldX)
+							{
+								SetTurn(TurnRight,abs(result),100);
+							}
+							else
+							{
+								SetTurn(TurnLeft,180-result,100);
+							}
+						}
+						else
+						{
+							if(UWBData.X>=oldX)
+							{
+								SetTurn(TurnLeft,abs(result),100);
+							}
+							else
+							{
+								SetTurn(TurnRight,180+result,100);
+							}
+						}
+						Turn_Step=6;
+					}
+			 }
+			 break;
+		 }
+		 case 6:
+		 {
+			 if(UWBData.Y<y)       //现在的Y轴小于设定的，直行
+			 {
+				 SetTurn(TurnLeft,90,100);
+				 SetTurn(Straight,30000,200);
+				 Turn_Step=7;
+			 }
+			 else if(UWBData.Y>y)  //现在的X轴小于设定的，旋转180直行 
+			 {
+				 SetTurn(TurnRight,90,100);
+				 SetTurn(Straight,30000,200);
+				 Turn_Step=7;
+			 }
+			 else
+			 {
+				 Turn_Step=7;
+			 }
+			 break;
+			 PSBKey.GREEN=0;
+			 Turn_Step=0;
+		 }
+		 case 7:
+		 {
+			 if(abs(UWBData.Y-y)<20)//距离小于20cm
+			 {
+				 SetTurn(Stop,0,0);
+				 PSBKey.GREEN=0;
+			   Turn_Step=0;
+			 }
 			 break;
 		 }
 		 default:break;
