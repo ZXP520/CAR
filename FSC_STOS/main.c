@@ -133,7 +133,7 @@ void Task1(void)
 		 }
 		 else
 		 {
-			  UWBTurnToX(100,0);
+			  UWBTurnToX(50,50);
 		 }
   	 OS_delayMs(10); 
 	 }	
@@ -168,15 +168,15 @@ void Task3(void)
 		 SendEncoderAndIMU20Ms(DealData_Rx.Hardware_Init);	
 			if(flag)
 			{
-				/*
-				SetTurn(TurnRight,120,100);
-				SetTurn(Straight,5000,200);
-				SetTurn(TurnLeft,120,100);
-				SetTurn(TurnRight,360,100);
-				SetTurn(Straight,5000,200);
-				SetTurn(TurnRight,90,100);
-				SetTurn(TurnLeft,90,100);
-				*/
+				
+				//SetTurn(TurnRight,120,100);
+				//SetTurn(Straight,5000,200);
+				//SetTurn(TurnLeft,120,100);
+				//SetTurn(TurnRight,360,100);
+				//SetTurn(Straight,5000,200);
+				//SetTurn(TurnRight,90,100);
+				//SetTurn(TurnLeft,90,100);
+				
 				flag=0;
 			}
 		
@@ -192,8 +192,8 @@ void Task4(void) //任务4
 	UWBData.x1=0;
 	UWBData.y1=0;
 	UWBData.x2=0;
-	UWBData.y2=1350;
-	UWBData.x3=1980;
+	UWBData.y2=6000;
+	UWBData.x3=2400;
 	UWBData.y3=0;
 	while(1) 
 	 {		
@@ -209,7 +209,7 @@ void Task4(void) //任务4
 		 {
 			 //u3_printf("N:%.2f\n",ImuData.Yaw);
 		 }
-		 //u3_printf("%.2f	%.2f	%.2f	%.2f	%.2f	%.2f\n",Angle_accX,Angle_accY,angle2,Gx,Gy,Gz);
+		 u3_printf("%.2f	%.2f	%.2f	%.2f	%.2f	%.2f\n",Angle_accX,Angle_accY,angle2,Gx,Gz,ImuData.Yaw);
 		 OS_delayMs(500); 			 //500ms进入一次
 	 }
 }

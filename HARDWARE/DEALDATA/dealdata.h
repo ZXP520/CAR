@@ -87,6 +87,8 @@ typedef struct
 	double X;
 	double Y;
 	u8  StableFlag;//Œ»∂®±Í÷æ
+	double AverageX;
+	double AverageY;
 }UWBDATA;
 extern UWBDATA UWBData;
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/

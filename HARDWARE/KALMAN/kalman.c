@@ -227,14 +227,23 @@ void Kalman_Filter_Z(float Accel,float Gyro) //卡尔曼函数
 //二阶互补滤波
 float K2 =0.01; // 权值
 float x1,x2,y1;
-float edt=20*0.001;//采样时间
+//float edt=20*0.001;//采样时间
 float angle2;
-void Erjielvbo(float angle_m,float gyro_m)//输入角度值
+void Erjielvbo(float angle_m,float gyro_m,float edt)//输入角度值
 {
     x1=(angle_m-angle2)*(1-K2)*(1-K2);
     y1=y1+x1*edt;
     x2=y1+2*(1-K2)*(angle_m-angle2)+gyro_m;
     angle2=angle2+ x2*edt;
+}
+
+
+//一阶互补滤波
+float one_filter(float angle_m,float gyro_m, float dt)
+{
+	 static float one_filter_angle=0,K1 =0.01;
+   one_filter_angle = K1 * angle_m+ (1-K1) * (one_filter_angle + gyro_m * dt);
+	return one_filter_angle;
 }
 
 
@@ -282,6 +291,8 @@ void Angle_Calcu1(void)
    Angle_accX= atan(Ax / Az)*180/ pi;     //加速度仪，反正切获得弧度值，乘以180度/pi 
    Angle_accY= atan(Ay / Az)*180/ pi;   //获得角度值，乘以-1得正
 	 Angle_accZ= atan(Ax / Ay)*180/ pi;
+	 
+	 
    //==========以下三行是对角速度做量化-2000°量程灵敏度因子14.375==========
    ggx=gx/14.375;
    ggy=gy/14.375;
@@ -292,11 +303,15 @@ void Angle_Calcu1(void)
 	NewTime=GetOSSliceTime();
 	//NewTime=Time6_Cnt;
   //下面三行就是通过对角速度积分实现各个轴的角度测量，当然假设各轴的起始角度都是0
-  Gx=Gx+(ggx-0)*20/1000;
-  Gy=Gy+(ggy-0)*20/1000;
+  //Gx=Gx+(ggx-0)*20/1000;
+  //Gy=Gy+(ggy-0)*20/1000;
   Gz=Gz+(ggz-0)*(NewTime-LastTime)*2/1000;
+	 
+  //一阶补偿
+	//ImuData.Yaw=Gz*0.99+0.01*Angle_accX;
 	if(Gz<0){Gz=359;}
 	else if(Gz>360){Gz=0;}
+	
 	ImuData.Yaw=Gz;
 	LastTime=NewTime;
 }

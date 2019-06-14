@@ -20,9 +20,9 @@ typedef struct
 {
     int front;//头
     int endline;//尾
-    datatype data [MAX]; //队列数据  运动方向
-	  datatype data1[MAX];//队列数据1  运动角度、时间
-	  datatype data2[MAX];//队列数据3  运动速度
+    datatype data [MAX]; //队列数据   运动方向
+	  datatype data1[MAX]; //队列数据1  运动角度、时间
+	  datatype data2[MAX]; //队列数据3  运动速度
 }queue;
 queue Queue;
 
@@ -30,7 +30,7 @@ queue Queue;
 void initQueue(void )
 {
     Queue.front = Queue.endline = 0;
-	  memset(Queue.data,0,MAX);
+	  memset(Queue.data, 0,MAX);
 		memset(Queue.data1,0,MAX);
 		memset(Queue.data2,0,MAX);
 }
@@ -51,13 +51,13 @@ void enQueue(datatype data,datatype data1,datatype data2)
 				Queue.data2[Queue.endline] = data2;
         Queue.endline += 1; 
     }
-    else if(Queue.endline==MAX) //到了末尾循环
+    else if(Queue.endline==MAX) //到了末尾循环覆盖
 		{
 				Queue.endline=0;
 				Queue.data[Queue.endline]  = data;
 				Queue.data1[Queue.endline] = data1;
 				Queue.data2[Queue.endline] = data2;
-        Queue.endline += 1; 
+        Queue.front += 1; 
         return;
     }
     
@@ -311,13 +311,13 @@ void ControlStraight(int speed,int settime)
 							ThreeWheel.AimsEncoder=TAimEncoder*0.8;
 						}
 					}
-					//Trun_Flag=2;
 				}
 				else if(ImuData.Yaw<FirstAngle)
 				{
 					if(ImuData.Yaw-FirstAngle<-200)//越界
 					{
 						AngleError=360-FirstAngle+ImuData.Yaw;
+						RightWheel.AimsEncoder=RightWheel.AimsEncoder+AngleError*0.1;
 						if(RightWheel.AimsEncoder>RAimEncoder*1.2)//限制输出
 						{
 							RightWheel.AimsEncoder=RAimEncoder*1.2;
@@ -343,7 +343,6 @@ void ControlStraight(int speed,int settime)
 							ThreeWheel.AimsEncoder=TAimEncoder*1.2;
 						}	
 					}
-					//Trun_Flag=2;
 				}
 			}
 			else 				//向后
@@ -371,10 +370,14 @@ void ControlStraight(int speed,int settime)
 }
 
 
+
+
+
 void UWBTurnToX(double x,double y)
 {
 	 static double oldX=0,oldY=0,result=0;
 	 static u8 Turn_Step=0;
+	 static int RAimEncoder=0,LAimEncoder=0,TAimEncoder=0,Dspeed=0;
 	 
 	 if(PSBKey.GREEN==0)//遥控器绿色按键没按
 	 {
@@ -509,35 +512,55 @@ void UWBTurnToX(double x,double y)
 			 }
 			 break;
 		 }
-		 case 6:
+		 case 6:		//旋转90度平行于Y轴
 		 {
 			 if(UWBData.Y<y)       //现在的Y轴小于设定的，直行
 			 {
 				 SetTurn(TurnLeft,90,100);
-				 SetTurn(Straight,30000,200);
 				 Turn_Step=7;
 			 }
 			 else if(UWBData.Y>y)  //现在的X轴小于设定的，旋转180直行 
 			 {
-				 SetTurn(TurnRight,90,100);
-				 SetTurn(Straight,30000,200);
+				 SetTurn(TurnRight,90,100);	
 				 Turn_Step=7;
 			 }
 			 else
 			 {
 				 Turn_Step=7;
+				 
 			 }
 			 break;
-			 PSBKey.GREEN=0;
-			 Turn_Step=0;
 		 }
-		 case 7:
+		 case 7: //旋转完成
+		 {
+			 if(OSTaskStateGet(Task6)==TASK_PAUSING&&Task6_Step==0)//动作完成，任务6就会暂停
+			 {
+				 OmniWheelscontrol(0,200,0,0);
+				 LAimEncoder=LeftWheel.AimsEncoder;
+				 RAimEncoder=RightWheel.AimsEncoder;
+				 TAimEncoder=ThreeWheel.AimsEncoder;
+				 Turn_Step=8;
+			 }
+			 break;
+		 }
+		 case 8: //平行Y轴走到设定点
 		 {
 			 if(abs(UWBData.Y-y)<20)//距离小于20cm
 			 {
 				 SetTurn(Stop,0,0);
 				 PSBKey.GREEN=0;
 			   Turn_Step=0;
+			 }
+			 else
+			 {
+				 //以X轴误差来矫正走直线
+				 Dspeed=(UWBData.X-x)*2;
+				 if(Dspeed>50){Dspeed=50;}
+				 else if(Dspeed<-50){Dspeed=-50;}
+				 OmniWheelscontrol(
+				 Dspeed,200,0,0);
+				 
+				 
 			 }
 			 break;
 		 }

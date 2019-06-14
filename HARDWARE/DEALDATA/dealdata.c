@@ -561,19 +561,26 @@ double UWBAbs(double data)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void JudgeUWBXYStable(void)
 {
-	static double LastX=0,LastY=0;
+	static double LastX=0,LastY=0,TempX=0,TempY=0;
 	static u8 StableFlag=0;
 	if(UWBAbs(UWBData.Y-LastY)<10 && UWBAbs(UWBData.X-LastX)<10)//偏差小于10cm累计20次则算稳定
 	{
+		TempX+=UWBData.X*(1/20.0);
+		TempY+=UWBData.Y*(1/20.0);
 		StableFlag++;
 	}
 	else
 	{
+		TempX=0;
+		TempY=0;
+	
 		UWBData.StableFlag=0;
 		StableFlag=0;
 	}
 	if(StableFlag>20)
 	{
+		UWBData.AverageX=TempX;//获得平均值
+		UWBData.AverageY=TempY;
 		UWBData.StableFlag=1;
 		StableFlag=0;
 	}
