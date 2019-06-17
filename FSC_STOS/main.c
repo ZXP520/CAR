@@ -133,7 +133,7 @@ void Task1(void)
 		 }
 		 else
 		 {
-			  UWBTurnToX(50,50);
+			  UWBTurnToX(50,50,0,0,0,6000,2400,0);
 		 }
   	 OS_delayMs(10); 
 	 }	
@@ -189,12 +189,6 @@ void Task3(void)
 **************************************************************************/
 void Task4(void) //任务4  
 {
-	UWBData.x1=0;
-	UWBData.y1=0;
-	UWBData.x2=0;
-	UWBData.y2=6000;
-	UWBData.x3=2400;
-	UWBData.y3=0;
 	while(1) 
 	 {		
 		 //如果任务5处于暂停状态，且硬件初始化成功，则开启任务5

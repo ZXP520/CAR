@@ -52,7 +52,13 @@ static void Respond_To_Ros(void)
 	USART2_DMA_TX(TXData.ChRxData,DealData_Rx.FrameLength);
 }
 
-
+/*******************************************************************************
+* Function Name  : Respond_To_Ros
+* Description    : 读取IMU的零飘值
+* Input          : None 
+* Output         : None
+* Return         : None
+****************************************************************************** */
 void GetIMU0ffset(void)
 {
 	static u8 GetIMUData_cnt=0,GetIMUData_cnt1=0;
@@ -212,6 +218,7 @@ static u8 ExtractData(void)
 			case 1:TempRxData.InTempData[0]=RXData.ChRxData[7];break;
 			case 2:for(i=0;i<2;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break;
 			case 4:for(i=0;i<4;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break;
+			case 5:for(i=0;i<5;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break;
 			case 6:for(i=0;i<6;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break;
 			case 8:for(i=0;i<8;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break; //速度设置最多为8
 			default:break;
@@ -425,6 +432,7 @@ void DealRXData(void)
 				OmniWheelscontrol(0,0,0,0);
 				SChassisAttitudeFlag=0;
 			}
+			//遥控器按键
 			switch(TempRxData.InTempData[3])
 			{
 				case PSB_GREEN: PSBKey.GREEN=1;break;

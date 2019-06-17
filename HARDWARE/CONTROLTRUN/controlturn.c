@@ -115,7 +115,7 @@ static u8 Task6_Step=0,QueueTask=100,Time_Cnt=0;;
 void AllControlTrun(void)
 {
 	
-	//没去零飘或者队列为空返回
+	//没去零飘返回
 	if(ImuData.ZeroFtlag==0)
 	{
 		return;
@@ -371,14 +371,24 @@ void ControlStraight(int speed,int settime)
 
 
 
-
-
-void UWBTurnToX(double x,double y)
+/**************************************************************************
+函数功能：UWB小车定位
+入口参数：需要定位到的X,Y轴坐标 ,和三个基站的坐标
+返回  值：无
+**************************************************************************/
+void UWBTurnToX(double x,double y,double x1,double y1,double x2,double y2,double x3,double y3)
 {
 	 static double oldX=0,oldY=0,result=0;
 	 static u8 Turn_Step=0;
 	 static int RAimEncoder=0,LAimEncoder=0,TAimEncoder=0,Dspeed=0;
-	 
+	 UWBData.x1=x1;
+	 UWBData.y1=y1;
+	 UWBData.x2=x2;
+	 UWBData.y2=y2;//6000;
+	 UWBData.x3=x3;//2400;
+	 UWBData.y3=y3; 
+	
+	
 	 if(PSBKey.GREEN==0)//遥控器绿色按键没按
 	 {
 		Turn_Step=0;
