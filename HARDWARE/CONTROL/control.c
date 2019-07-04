@@ -1,3 +1,15 @@
+/**
+  ******************************************************************************
+  * @file    control.c
+  * @author  zxp
+  * @version V1.0.0
+  * @date    2019-06-19
+  * @brief   用于小车轮子运动控制，和PID算法的实现等
+  ******************************************************************************
+  * @attention 
+  * 
+  ******************************************************************************
+  */
 #include "control.h"		
 #include "sys.h"
 #include "include.h"
@@ -11,13 +23,11 @@
 
 Wheel LeftWheel,RightWheel,ThreeWheel,FourWheel,AllWheel;//定义左右轮结构体
 
-/*******************************************************************************
-* Function Name  : LeftWheelSpeedSet
-* Description    : 左轮速度设置
-* Input          : 左轮速度 
-* Output         : None
-* Return         : None 
-****************************************************************************** */
+/**************************************************************************
+函数功能：左轮速度设置
+入口参数：左轮速度 
+返回  值：无
+**************************************************************************/
 void LeftWheelSpeedSet(int speed)
 {
 //左轮反向 差速
@@ -39,13 +49,11 @@ void LeftWheelSpeedSet(int speed)
 	LeftWheel.AimsEncoder=speed*SPEED_TO_ENCODER+0.5;//+0.5四舍五入
 }
 
-/*******************************************************************************
-* Function Name  : LeftWheelSpeedSet
-* Description    : 右轮速度设置
-* Input          : 右轮速度 
-* Output         : None
-* Return         : None 
-****************************************************************************** */
+/**************************************************************************
+函数功能：右轮速度设置
+入口参数：右轮速度 
+返回  值：无
+**************************************************************************/
 void  RightWheelSpeedSet(int speed)
 {
 	if(speed>=0)//正方向
@@ -63,13 +71,12 @@ void  RightWheelSpeedSet(int speed)
 	RightWheel.AimsEncoder=speed*SPEED_TO_ENCODER+0.5;//+0.5四舍五入
 }
 
-/*******************************************************************************
-* Function Name  : LeftWheelSpeedSet
-* Description    : 三轮速度设置
-* Input          : 三轮速度 
-* Output         : None
-* Return         : None 
-****************************************************************************** */
+
+/**************************************************************************
+函数功能：三轮速度设置
+入口参数：三轮速度 
+返回  值：无
+**************************************************************************/
 void  ThreeWheelSpeedSet(int speed)
 {
 	if(speed>=0)//正方向
@@ -87,14 +94,11 @@ void  ThreeWheelSpeedSet(int speed)
 	ThreeWheel.AimsEncoder=speed*SPEED_TO_ENCODER+0.5;//+0.5四舍五入
 }
 
-
-/*******************************************************************************
-* Function Name  : LeftWheelSpeedSet
-* Description    : 四轮速度设置
-* Input          : 四轮速度 
-* Output         : None
-* Return         : None 
-****************************************************************************** */
+/**************************************************************************
+函数功能：四轮速度设置
+入口参数：四轮速度 
+返回  值：无
+**************************************************************************/
 void  FourWheelSpeedSet(int speed)
 {
 	if(speed>=0)//正方向
@@ -114,8 +118,10 @@ void  FourWheelSpeedSet(int speed)
 
 /**************************************************************************
 函数功能：PID运动控制
-					10ms进一次
-					在任务2中调用
+入口参数：无
+返回  值：无
+10ms进一次
+在任务2中调用
 **************************************************************************/
 void RunWheelcontrol(void)
 {	
@@ -151,7 +157,6 @@ void RunWheelcontrol(void)
 	SetFour_Pwm (FourWheel.MotoPwm  ,FourWheel.Direct );
 }
 
-
 /**************************************************************************
 函数功能：赋值给PWM寄存器
 入口参数：PWM mode(1为前进， 0为后退)
@@ -170,6 +175,7 @@ void SetLeft_Pwm(int moto,u8 mode)
 		TIM_SetCompare2(TIM8,TIM8_Period); 
 	}
 }
+
 /**************************************************************************
 函数功能：赋值给PWM寄存器
 入口参数：PWM mode(1为前进， 0为后退)
@@ -181,8 +187,6 @@ void SetRight_Pwm(int moto,u8 mode)
 	{
 		TIM_SetCompare3(TIM8,TIM8_Period); 
 		TIM_SetCompare4(TIM8,TIM8_Period-moto); 
-		
-		
 	}
 	else
 	{	
@@ -230,8 +234,6 @@ void SetFour_Pwm(int moto,u8 mode)
 	}
 }
 
-
-
 /**************************************************************************
 函数功能：限制PWM赋值 
 入口参数：无
@@ -239,18 +241,18 @@ void SetFour_Pwm(int moto,u8 mode)
 **************************************************************************/
 void Xianfu_Pwm(void)
 {	
-	  //TIM8_Period=1200;    //===PWM满幅是1200 限制在1200
-	  if(LeftWheel.MotoPwm<-TIM8_Period)  LeftWheel.MotoPwm=-TIM8_Period;	
-		if(LeftWheel.MotoPwm>TIM8_Period)   LeftWheel.MotoPwm=TIM8_Period;	
+	//TIM8_Period=1200;    //===PWM满幅是1200 限制在1200
+	if(LeftWheel.MotoPwm<-TIM8_Period)  LeftWheel.MotoPwm=-TIM8_Period;	
+	if(LeftWheel.MotoPwm>TIM8_Period)   LeftWheel.MotoPwm=TIM8_Period;	
 
-		if(RightWheel.MotoPwm<-TIM8_Period) RightWheel.MotoPwm=-TIM8_Period;	
-		if(RightWheel.MotoPwm>TIM8_Period)  RightWheel.MotoPwm=TIM8_Period;	
-	
-		if(ThreeWheel.MotoPwm<-TIM8_Period) ThreeWheel.MotoPwm=-TIM8_Period;	
-		if(ThreeWheel.MotoPwm>TIM8_Period)  ThreeWheel.MotoPwm=TIM8_Period;	
-	
-		if(FourWheel.MotoPwm<-TIM8_Period) FourWheel.MotoPwm=-TIM8_Period;	
-		if(FourWheel.MotoPwm>TIM8_Period)  FourWheel.MotoPwm=TIM8_Period;	
+	if(RightWheel.MotoPwm<-TIM8_Period) RightWheel.MotoPwm=-TIM8_Period;	
+	if(RightWheel.MotoPwm>TIM8_Period)  RightWheel.MotoPwm=TIM8_Period;	
+
+	if(ThreeWheel.MotoPwm<-TIM8_Period) ThreeWheel.MotoPwm=-TIM8_Period;	
+	if(ThreeWheel.MotoPwm>TIM8_Period)  ThreeWheel.MotoPwm=TIM8_Period;	
+
+	if(FourWheel.MotoPwm<-TIM8_Period) FourWheel.MotoPwm=-TIM8_Period;	
+	if(FourWheel.MotoPwm>TIM8_Period)  FourWheel.MotoPwm=TIM8_Period;	
 }
 
 /**************************************************************************
@@ -260,10 +262,10 @@ void Xianfu_Pwm(void)
 **************************************************************************/
 static int myabs(int a)
 { 		   
-	  int temp;
-		if(a<0)  temp=0;//temp=-a;  
-	  else temp=a;
-	  return temp;
+	int temp;
+	if(a<0)  temp=0;//temp=-a;  
+	else temp=a;
+	return temp;
 }
 
 float Amplitude_PKP=20,Amplitude_PKI=0.1,Amplitude_PKD=25,Amplitude_VKP=2,Amplitude_VKI=3; //PID调试相关参数
@@ -299,7 +301,6 @@ void Init_PID(void)
 }
 
 //左PID
-
 static int LeftIncremental_PI (int Encoder,int Target)
 { 	
 	LeftPID.errNow=Target-Encoder;  																												//计算偏差
@@ -348,6 +349,7 @@ static int FourIncremental_PI (int Encoder,int Target)
 	return FourPID.ctrOut;																																	//增量输出
 	
 }
+
 /**************************************************************************
 函数功能：位置式PID控制器
 入口参数：编码器测量位置信息，目标位置
@@ -370,34 +372,31 @@ int Position_PID (int Encoder,int Target)
 	 return Pwm;                                           //增量输出
 }
 
-
 //绝对式PID算法
 void PID_AbsoluteMode(PID_AbsoluteType* PID)
 {
- if(PID->kp      < 0)    PID->kp      = -PID->kp;
- if(PID->ki      < 0)    PID->ki      = -PID->ki;
- if(PID->kd      < 0)    PID->kd      = -PID->kd;
- if(PID->errILim < 0)    PID->errILim = -PID->errILim;
+	 if(PID->kp      < 0)    PID->kp      = -PID->kp;
+	 if(PID->ki      < 0)    PID->ki      = -PID->ki;
+	 if(PID->kd      < 0)    PID->kd      = -PID->kd;
+	 if(PID->errILim < 0)    PID->errILim = -PID->errILim;
 
- PID->errP = PID->errNow;  //读取现在的误差，用于kp控制
+	 PID->errP = PID->errNow;  //读取现在的误差，用于kp控制
 
- PID->errI += PID->errNow; //误差积分，用于ki控制
+	 PID->errI += PID->errNow; //误差积分，用于ki控制
 
- if(PID->errILim != 0)	   //微分上限和下限
- {
-  if(     PID->errI >  PID->errILim)    PID->errI =  PID->errILim;
-  else if(PID->errI < -PID->errILim)    PID->errI = -PID->errILim;
- }
- 
- PID->errD = PID->errNow - PID->errOld;//误差微分，用于kd控制
+	 if(PID->errILim != 0)	   //微分上限和下限
+	 {
+		  if(     PID->errI >  PID->errILim)    PID->errI =  PID->errILim;
+		  else if(PID->errI < -PID->errILim)    PID->errI = -PID->errILim;
+	 }
+	 
+	 PID->errD = PID->errNow - PID->errOld;//误差微分，用于kd控制
 
- PID->errOld = PID->errNow;	//保存现在的误差
- 
- PID->ctrOut = PID->kp * PID->errP + PID->ki * PID->errI + PID->kd * PID->errD;//计算绝对式PID输出
+	 PID->errOld = PID->errNow;	//保存现在的误差
+	 
+	 PID->ctrOut = PID->kp * PID->errP + PID->ki * PID->errI + PID->kd * PID->errD;//计算绝对式PID输出
 
 }
-
-
 
 //全向轮运动控制
 /*

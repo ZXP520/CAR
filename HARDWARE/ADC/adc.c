@@ -1,3 +1,15 @@
+ /**
+  ******************************************************************************
+  * @file    adc.c
+  * @author  zxp
+  * @version V1.0.0
+  * @date    2019-06-19
+  * @brief   ADC电量采样驱动程序
+  ******************************************************************************
+  * @attention 
+  * 
+  ******************************************************************************
+  */
  #include "adc.h"
  #include "delay.h"
  #include "stm32f10x_adc.h"
@@ -28,7 +40,6 @@ void  Adc_Init(void)
 	ADC_InitStructure.ADC_NbrOfChannel = 1;	//顺序进行规则转换的ADC通道的数目
 	ADC_Init(ADC1, &ADC_InitStructure);	//根据ADC_InitStruct中指定的参数初始化外设ADCx的寄存器   
 
-  
 	ADC_Cmd(ADC1, ENABLE);	//使能指定的ADC1
 	
 	ADC_ResetCalibration(ADC1);	//使能复位校准  
@@ -41,7 +52,8 @@ void  Adc_Init(void)
  
 //	ADC_SoftwareStartConvCmd(ADC1, ENABLE);		//使能指定的ADC1的软件转换启动功能
 
-}				  
+}
+
 //获得ADC值
 //ch:通道值 0~3
 u16 Get_Adc(u8 ch)   

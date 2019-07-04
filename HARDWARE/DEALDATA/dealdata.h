@@ -7,17 +7,48 @@
 #define TXDATALENTH 0x0008 //发送数据长度
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //手柄按键
+#define PSB_SELECT      1
+#define PSB_L3          2
+#define PSB_R3          3
+#define PSB_START       4
+#define PSB_PAD_UP      5
+#define PSB_PAD_RIGHT   6
+#define PSB_PAD_DOWN    7
+#define PSB_PAD_LEFT    8
+#define PSB_L2          9
+#define PSB_R2          10
+#define PSB_L1          11
+#define PSB_R1          12
 #define PSB_GREEN       13
 #define PSB_RED         14
 #define PSB_BLUE        15
 #define PSB_PINK        16
+#define PSB_TRIANGLE    13
+#define PSB_CIRCLE      14
+#define PSB_CROSS       15
+
+
+#define PSB_SQUARE      26
 
 typedef struct
 {
+	u8  UP;
+	u8	RIGHT;
+	u8  DOWN;
+	u8  LEFT;
+	u8  L2;
+	u8  R2;
+	u8  L1;
+	u8	R1;
 	u8	GREEN;
 	u8 	RED;
 	u8	BLUE;
 	u8  PINK;
+	
+	s16 PSS_LY;
+	s16 PSS_LX;
+	s16 PSS_RY;
+	s16 PSS_RX;
 	
 }PSBKEY;
 extern PSBKEY PSBKey;
@@ -62,6 +93,7 @@ typedef enum
 	STurningRadius,     			//轮子拐弯半径
 	SWhellAcceleration,       //轮子加速度
 	SChassisAttitude,  				//底盘姿态
+	SPSRawData,								//PS原始数据
 	UploadData=0xF000					//上传数据命令
 	
 }SetCMD;//设置命令
@@ -95,6 +127,7 @@ extern UWBDATA UWBData;
 void DealRXData(void);
 void SendEncoderAndIMU20Ms(u8 sendflag);
 void GetIMU0ffset(void);
+void DealPSData(void);
 void DealUWBData(void);
 void calcPhonePosition   (double x1, double y1, double d1,
 													double x2, double y2, double d2,

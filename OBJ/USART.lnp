@@ -2,7 +2,6 @@
 "..\obj\stm32f10x_it.o"
 "..\obj\system_stm32f10x.o"
 "..\obj\timer.o"
-"..\obj\led.o"
 "..\obj\control.o"
 "..\obj\dealdata.o"
 "..\obj\encoder.o"

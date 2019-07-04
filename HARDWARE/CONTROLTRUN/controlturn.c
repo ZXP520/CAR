@@ -1,3 +1,16 @@
+/**
+  ******************************************************************************
+  * @file    controlturn.c
+  * @author  zxp
+  * @version V1.0.0
+  * @date    2019-06-19
+  * @brief   用于小车的各种运动控制，如：按某个方向旋转多少度，陀螺仪修正走直线等
+  *          UWB定点行走的简单实现等
+  ******************************************************************************
+  * @attention 
+  * 
+  ******************************************************************************
+  */
 #include "controlturn.h"		
 #include "sys.h"
 #include "include.h"
@@ -18,74 +31,74 @@
 //队列结构体
 typedef struct 
 {
-    int front;//头
-    int endline;//尾
-    datatype data [MAX]; //队列数据   运动方向
-	  datatype data1[MAX]; //队列数据1  运动角度、时间
-	  datatype data2[MAX]; //队列数据3  运动速度
+	int front;//头
+	int endline;//尾
+	datatype data [MAX]; //队列数据   运动方向
+	datatype data1[MAX]; //队列数据1  运动角度、时间
+	datatype data2[MAX]; //队列数据3  运动速度
 }queue;
 queue Queue;
 
 //初始化队列
 void initQueue(void )
 {
-    Queue.front = Queue.endline = 0;
-	  memset(Queue.data, 0,MAX);
-		memset(Queue.data1,0,MAX);
-		memset(Queue.data2,0,MAX);
+	Queue.front = Queue.endline = 0;
+	memset(Queue.data, 0,MAX);
+	memset(Queue.data1,0,MAX);
+	memset(Queue.data2,0,MAX);
 }
 
 //入队
 void enQueue(datatype data,datatype data1,datatype data2)
 {
-    //判断溢出
-    if (Queue.endline<MAX)
-    {
-        //判断为空
-        if (Queue.front == Queue.endline)
-        {
-            initQueue();
-        }
-        Queue.data[Queue.endline]  = data;
-				Queue.data1[Queue.endline] = data1;
-				Queue.data2[Queue.endline] = data2;
-        Queue.endline += 1; 
-    }
-    else if(Queue.endline==MAX) //到了末尾循环覆盖
+	//判断溢出
+	if (Queue.endline<MAX)
+	{
+		//判断为空
+		if (Queue.front == Queue.endline)
 		{
-				Queue.endline=0;
-				Queue.data[Queue.endline]  = data;
-				Queue.data1[Queue.endline] = data1;
-				Queue.data2[Queue.endline] = data2;
-        Queue.front += 1; 
-        return;
-    }
+			initQueue();
+		}
+		Queue.data[Queue.endline]  = data;
+		Queue.data1[Queue.endline] = data1;
+		Queue.data2[Queue.endline] = data2;
+		Queue.endline += 1; 
+	}
+	else if(Queue.endline==MAX) //到了末尾循环覆盖
+	{
+		Queue.endline=0;
+		Queue.data[Queue.endline]  = data;
+		Queue.data1[Queue.endline] = data1;
+		Queue.data2[Queue.endline] = data2;
+		Queue.front += 1; 
+		return;
+	}
     
 }
 
 //出队
 u8 deQueue(void)
 {
-    //判断为空
-		if (Queue.front==MAX)
-		{
-				Queue.front=0;//到了末尾循环到头
-		}
-    if (Queue.front == Queue.endline+1)
-    {
-        return 0;
-    }
-    else
-		{
-        //Queue.front+= 1;
-			  return Queue.data[Queue.front++];
-    }
+	//判断为空
+	if (Queue.front==MAX)
+	{
+		Queue.front=0;//到了末尾循环到头
+	}
+	if (Queue.front == Queue.endline+1)
+	{
+		return 0;
+	}
+	else
+	{
+	//Queue.front+= 1;
+		return Queue.data[Queue.front++];
+	}
 }
 
 //遍历队列
 void printfQueue(void)
 {
-		u8 i=0;
+	u8 i=0;
     for (i = Queue.front; i < Queue.endline; i++)
     {
         printf("%d\n", Queue.data[i]);
@@ -95,14 +108,14 @@ void printfQueue(void)
 //判断队列是否为空
 u8 EmptyQueue(void)
 {
-		if (Queue.front == Queue.endline)
-    {
-        return 1;
-    }
-		else
-		{
-			  return 0;
-		}
+	if (Queue.front == Queue.endline)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 /**************************************************************************
@@ -481,7 +494,7 @@ void UWBTurnToX(double x,double y,double x1,double y1,double x2,double y2,double
 			 {
 				 SetTurn(Stop,0,0);
 				 //PSBKey.GREEN=0;
-			   Turn_Step=5;
+				 Turn_Step=5;
 			 }
 			 break;
 		 }
@@ -559,7 +572,7 @@ void UWBTurnToX(double x,double y,double x1,double y1,double x2,double y2,double
 			 {
 				 SetTurn(Stop,0,0);
 				 PSBKey.GREEN=0;
-			   Turn_Step=0;
+				 Turn_Step=0;
 			 }
 			 else
 			 {

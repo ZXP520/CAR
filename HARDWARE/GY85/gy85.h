@@ -24,20 +24,20 @@
 #define	WHO_AM_I			0x00	//IIC地址寄存器(默认数值0x68，只读)
 #define	SlaveAddress	0xD0	//IIC写入时的地址字节数据
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-#define WHO	    0x00
-#define	SMPL	0x15
-#define DLPF	0x16
-#define INT_C	0x17
-#define INT_S	0x1A
-#define	TMP_H	0x1B
-#define	TMP_L	0x1C
-#define	GX_H	0x00
-#define	GX_L	0x01
-#define	GY_H	0x02
-#define	GY_L	0x03
-#define GZ_H	0x04
-#define GZ_L	0x05
-#define PWR_M	0x3E
+#define WHO	  			0x00
+#define	SMPL			0x15
+#define DLPF			0x16
+#define INT_C			0x17
+#define INT_S			0x1A
+#define	TMP_H			0x1B
+#define	TMP_L			0x1C
+#define	GX_H			0x00
+#define	GX_L			0x01
+#define	GY_H			0x02
+#define	GY_L			0x03
+#define GZ_H			0x04
+#define GZ_L			0x05
+#define PWR_M			0x3E
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 #define	HMC5883L_Addr   0x1a	//磁场传感器器件地址
 #define	ADXL345_Addr    0xA6	//加速度传感器器件地址

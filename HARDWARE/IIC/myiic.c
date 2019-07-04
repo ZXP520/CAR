@@ -1,3 +1,14 @@
+/**
+  ******************************************************************************
+  * @file    myiic.c
+  * @author  zxp
+  * @version V1.0.0
+  * @date    2019-06-19
+  * @brief   模拟IIC的驱动程序
+  ******************************************************************************
+  * @attention  在os系统中IIC等通信延时需要用阻塞延时
+  ******************************************************************************
+  */
 #include "myiic.h"
 /*******************************************************************************
 * Function Name  : I2C_GPIO_Config
@@ -8,22 +19,20 @@
 ****************************************************************************** */
 void I2C_GPIO_Config(void)
 {
-  GPIO_InitTypeDef  GPIO_InitStructure; 
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);	 //??PB,PE????
-	
-  GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_5;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_InitTypeDef  GPIO_InitStructure; 
+	RCC_APB2PeriphClockCmd(IIC_GPIO_CLK, ENABLE);	 
+
+	GPIO_InitStructure.GPIO_Pin =  IIC_SDA_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
+	GPIO_Init(IIC_GPIO_PORT, &GPIO_InitStructure);
 	//禁止JLink复用功能
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE); 
-	
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_4;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;  
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-	
-	
+
+	GPIO_InitStructure.GPIO_Pin =  IIC_SCL_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;  
+	GPIO_Init(IIC_GPIO_PORT, &GPIO_InitStructure);
 }
 
 /*******************************************************************************
@@ -33,11 +42,11 @@ void I2C_GPIO_Config(void)
 * Output         : None
 * Return         : None
 ****************************************************************************** */
-
 void IICdelay_us(u32 nTimer)
 {
 	u32 i=0;
-	for(i=0;i<nTimer;i++){
+	for(i=0;i<nTimer;i++)
+	{
 		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
 		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
 		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
@@ -45,7 +54,6 @@ void IICdelay_us(u32 nTimer)
 		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
 	}
 }
-
 
 /*******************************************************************************
 * Function Name  : I2C_Start
@@ -85,6 +93,7 @@ void I2C_Stop(void)
 	SDA_H;
 	IICdelay_us(2);
 } 
+
 /*******************************************************************************
 * Function Name  : I2C_Ack
 * Description    : Master Send Acknowledge Single
@@ -103,6 +112,7 @@ void I2C_Ack(void)
 	SCL_L;
 	IICdelay_us(2);
 }   
+
 /*******************************************************************************
 * Function Name  : I2C_NoAck
 * Description    : Master Send No Acknowledge Single
@@ -121,6 +131,7 @@ void I2C_NoAck(void)
 	SCL_L;
 	IICdelay_us(2);
 } 
+
 /*******************************************************************************
 * Function Name  : I2C_WaitAck
 * Description    : Master Reserive Slave Acknowledge Single
@@ -138,14 +149,15 @@ int I2C_WaitAck(void) 	 //返回为:=1有ACK,=0无ACK
 	IICdelay_us(2);
 	if(SDA_read)
 	{
-      SCL_L;
-	  IICdelay_us(2);
-      return 0;
+		SCL_L;
+		IICdelay_us(2);
+		return 0;
 	}
 	SCL_L;
 	IICdelay_us(2);
 	return 1;
 }
+
 /*******************************************************************************
 * Function Name  : I2C_SendByte
 * Description    : Master Send a Byte to Slave
@@ -158,19 +170,20 @@ void I2C_SendByte(u8 SendByte) //数据从高位到低位//
     u8 i=8;
     while(i--)
     {
-        SCL_L;
-        IICdelay_us(2);
-      if(SendByte&0x80)
-        SDA_H;  
-      else 
-        SDA_L;   
-        SendByte<<=1;
-        IICdelay_us(2);
+		SCL_L;
+		IICdelay_us(2);
+		if(SendByte&0x80)
+		SDA_H;  
+		else 
+		SDA_L;   
+		SendByte<<=1;
+		IICdelay_us(2);
 		SCL_H;
-        IICdelay_us(2);
+		IICdelay_us(2);
     }
     SCL_L;
 }  
+
 /*******************************************************************************
 * Function Name  : I2C_RadeByte
 * Description    : Master Reserive a Byte From Slave
@@ -186,19 +199,20 @@ unsigned char I2C_RadeByte(void)  //数据从高位到低位//
     SDA_H;				
     while(i--)
     {
-      ReceiveByte<<=1;      
-      SCL_L;
-      IICdelay_us(2);
-	  SCL_H;
-      IICdelay_us(2);	
-      if(SDA_read)
-      {
-        ReceiveByte|=0x01;
-      }
+		ReceiveByte<<=1;      
+		SCL_L;
+		IICdelay_us(2);
+		SCL_H;
+		IICdelay_us(2);	
+		if(SDA_read)
+		{
+		ReceiveByte|=0x01;
+		}
     }
     SCL_L;
     return ReceiveByte;
 } 
+
 //ZRX          
 //单字节写入*******************************************
 u8 IIC_Write_One_Byte(unsigned char SlaveAddress,unsigned char REG_Address,unsigned char REG_data)		     //void
@@ -217,8 +231,9 @@ u8 IIC_Write_One_Byte(unsigned char SlaveAddress,unsigned char REG_Address,unsig
 
 //单字节读取*****************************************
 unsigned char IIC_Read_One_Byte(unsigned char SlaveAddress,unsigned char REG_Address)
-{   unsigned char REG_data;     	
-		if(!I2C_Start())return 0;
+{   
+	unsigned char REG_data;     	
+	if(!I2C_Start())return 0;
     I2C_SendByte(SlaveAddress); //I2C_SendByte(((REG_Address & 0x0700) >>7) | REG_Address & 0xFFFE);//设置高起始地址+器件地址 
     if(!I2C_WaitAck()){I2C_Stop(); return 0;}
     I2C_SendByte((u8) REG_Address);   //设置低起始地址      

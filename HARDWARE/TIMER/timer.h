@@ -1,41 +1,55 @@
 #ifndef __TIMER_H
 #define __TIMER_H
 #include "sys.h"
-//////////////////////////////////////////////////////////////////////////////////	 
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途
-//ALIENTEK战舰STM32开发板
-//定时器 驱动代码	   
-//正点原子@ALIENTEK
-//技术论坛:www.openedv.com
-//修改日期:2012/9/3
-//版本：V1.0
-//版权所有，盗版必究。
-//Copyright(C) 广州市星翼电子科技有限公司 2009-2019
-//All rights reserved									  
-//////////////////////////////////////////////////////////////////////////////////   
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+--------------------------------------定时器引脚图---------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/ 
 
-#define MOTORB_ENCODER_TIM_CLK  	RCC_APB1Periph_TIM3
-#define MOTORB_ENCODER_CLK				RCC_APB2Periph_GPIOA
-#define MOTORB_ENCODER_PIN        GPIO_Pin_6
-#define MOTORB_ENCODER_PORT       GPIOA
-#define MOTORB_ENCODER_TIM        TIM3
-#define ICx_FILTER                6
+/*++++++++++++++++++++++++++++++++++TIME1_ENCODER+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+#define TIM1_ENCODER_TIM_CLK  	RCC_APB2Periph_TIM1
+#define TIM1_ENCODER_PIN_CLK	RCC_APB2Periph_GPIOA
+#define TIM1_ENCODER_PIN        GPIO_Pin_8|GPIO_Pin_9
+#define TIM1_ENCODER_PORT       GPIOA
 
+/*++++++++++++++++++++++++++++++++++TIME2_ENCODER+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+#define TIM2_ENCODER_TIM_CLK  	RCC_APB1Periph_TIM2
+#define TIM2_ENCODER_PIN_CLK	RCC_APB2Periph_GPIOA 
+#define TIM2_ENCODER_PIN_CLK1	RCC_APB2Periph_GPIOB
+#define TIM2_ENCODER_PIN        GPIO_Pin_15
+#define TIM2_ENCODER_PIN1  		GPIO_Pin_3
+#define TIM2_ENCODER_PORT       GPIOA
+#define TIM2_ENCODER_PORT1      GPIOB
+
+/*++++++++++++++++++++++++++++++++++TIME3_ENCODER+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+#define TIM3_ENCODER_TIM_CLK  	RCC_APB1Periph_TIM3
+#define TIM3_ENCODER_PIN_CLK	RCC_APB2Periph_GPIOA
+#define TIM3_ENCODER_PIN        GPIO_Pin_6|GPIO_Pin_7
+#define TIM3_ENCODER_PORT       GPIOA
+
+/*++++++++++++++++++++++++++++++++++TIME4_PWM+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+#define TIM4_PWM_TIM_CLK  		RCC_APB1Periph_TIM4
+#define TIM4_PWM_PIN_CLK		RCC_APB2Periph_GPIOB
+#define TIM4_PWM_PIN        	GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9
+#define TIM4_PWM_PORT       	GPIOB
+
+/*++++++++++++++++++++++++++++++++++TIME5_ENCODER+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+#define TIM5_ENCODER_TIM_CLK  	RCC_APB1Periph_TIM5
+#define TIM5_ENCODER_PIN_CLK	RCC_APB2Periph_GPIOA
+#define TIM5_ENCODER_PIN        GPIO_Pin_0|GPIO_Pin_1
+#define TIM5_ENCODER_PORT       GPIOA
+
+/*++++++++++++++++++++++++++++++++++TIME8_PWM+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+#define TIM8_PWM_TIM_CLK  		RCC_APB2Periph_TIM8
+#define TIM8_PWM_PIN_CLK		RCC_APB2Periph_GPIOC
+#define TIM8_PWM_PIN        	GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9
+#define TIM8_PWM_PORT       	GPIOC
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 #define EncoderPeriod  20000
-
-
-extern u8  TIM3CH1_CAPTURE_STA;		   				
-extern u16	TIM3CH1_CAPTURE_VAL;	
-extern u8  TIM3CH2_CAPTURE_STA;		    				
-extern u16	TIM3CH2_CAPTURE_VAL;	
-extern u8  TIM3CH3_CAPTURE_STA;				    				
-extern u16	TIM3CH3_CAPTURE_VAL;	
-extern u8  TIM3CH4_CAPTURE_STA;			    				
-extern u16	TIM3CH4_CAPTURE_VAL;	
-
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 extern u32 LeftEncoder_Cnt,RightEncoder_Cnt;//左右轮计数全局化
 extern u32 Time6_Cnt;
-
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void TIM2_Int_Init(u16 arr,u16 psc);
 void TIM8_PWM_Init(u16 arr,u16 psc);
 void TIM3_Cap_Init(u16 arr,u16 psc);

@@ -1,3 +1,15 @@
+/**
+  ******************************************************************************
+  * @file    kalman.c
+  * @author  zxp
+  * @version V1.0.0
+  * @date    2019-06-19
+  * @brief   用于gy85的原始数据转换，和角速度积分算出yaw等
+  ******************************************************************************
+  * @attention 
+  * 
+  ******************************************************************************
+  */
 #include "kalman.h"
 #include "gy85.h"
 #include "math.h"
@@ -30,7 +42,7 @@ float Angle_Z_Final; //z最终倾斜角度
 //角度计算
 void Angle_Calcu(void)	 
 {
-	static int yaw=0;
+	//static int yaw=0;
 	//范围为2g时，换算关系：16384 LSB/g
 	//deg = rad*180/3.14
 	float x,y,z;
@@ -241,8 +253,8 @@ void Erjielvbo(float angle_m,float gyro_m,float edt)//输入角度值
 //一阶互补滤波
 float one_filter(float angle_m,float gyro_m, float dt)
 {
-	 static float one_filter_angle=0,K1 =0.01;
-   one_filter_angle = K1 * angle_m+ (1-K1) * (one_filter_angle + gyro_m * dt);
+	static float one_filter_angle=0,K1 =0.01;
+	one_filter_angle = K1 * angle_m+ (1-K1) * (one_filter_angle + gyro_m * dt);
 	return one_filter_angle;
 }
 
@@ -260,126 +272,56 @@ float Ax,Ay,Az;//单位 g(9.8m/s^2)
 float Gx,Gy,Gz;//单位 °/s
 float Angle_accX,Angle_accY,Angle_accZ;//存储加速度计算出的角度
 
-static void IMUupdate(float gx, float gy, float gz, float ax, float ay, float az);
 //角度计算
 void Angle_Calcu1(void)
 {
-	 static u8 first_flag=1;
-	 static u32 NewTime=0,LastTime=0;
-	 ax=ImuData.NAccelData[0];
-	 ay=ImuData.NAccelData[1];
-	 az=ImuData.NAccelData[2];
-	 
-	 //取第一次的值取零飘
-	 if(ImuData.ZeroFtlag==0)
-	 {
+	static u32 NewTime=0,LastTime=0;
+	ax=ImuData.NAccelData[0];
+	ay=ImuData.NAccelData[1];
+	az=ImuData.NAccelData[2];
+
+	//取第一次的值取零飘
+	if(ImuData.ZeroFtlag==0)
+	{
 		 ImuData.OffsetGYData[0]=ImuData.NGYData[0];
 		 ImuData.OffsetGYData[1]=ImuData.NGYData[1];
 		 ImuData.OffsetGYData[2]=ImuData.NGYData[2];
 		 ImuData.ZeroFtlag=1;
-	 }
-	 //去零飘
-	 gx=ImuData.NGYData[0]-ImuData.OffsetGYData[0];
-	 gy=ImuData.NGYData[1]-ImuData.OffsetGYData[1];
-	 gz=ImuData.NGYData[2]-ImuData.OffsetGYData[2];
+	}
+	//去零飘
+	gx=ImuData.NGYData[0]-ImuData.OffsetGYData[0];
+	gy=ImuData.NGYData[1]-ImuData.OffsetGYData[1];
+	gz=ImuData.NGYData[2]-ImuData.OffsetGYData[2];
 
 	//======一下三行是对加速度进行量化，得出单位为g的加速度值-2g量程
-   Ax=ax/16.384;
-   Ay=ay/16.384;
-   Az=az/16.384;
-   //==========以下三行是用加速度计算三个轴和水平面坐标系之间的夹角
-   Angle_accX= atan(Ax / Az)*180/ pi;     //加速度仪，反正切获得弧度值，乘以180度/pi 
-   Angle_accY= atan(Ay / Az)*180/ pi;   //获得角度值，乘以-1得正
-	 Angle_accZ= atan(Ax / Ay)*180/ pi;
-	 
-	 
-   //==========以下三行是对角速度做量化-2000°量程灵敏度因子14.375==========
-   ggx=gx/14.375;
-   ggy=gy/14.375;
-   ggz=gz/14.375;
-	 if(abs(ggz)<0.1){ggz=0;}
-  
+	Ax=ax/16.384;
+	Ay=ay/16.384;
+	Az=az/16.384;
+	//==========以下三行是用加速度计算三个轴和水平面坐标系之间的夹角
+	Angle_accX= atan(Ax / Az)*180/ pi;     //加速度仪，反正切获得弧度值，乘以180度/pi 
+	Angle_accY= atan(Ay / Az)*180/ pi;   //获得角度值，乘以-1得正
+	Angle_accZ= atan(Ax / Ay)*180/ pi;
+
+
+	//==========以下三行是对角速度做量化-2000°量程灵敏度因子14.375==========
+	ggx=gx/14.375;
+	ggy=gy/14.375;
+	ggz=gz/14.375;
+	if(abs(ggz)<0.1){ggz=0;}
+
 	//算积分时间
 	NewTime=GetOSSliceTime();
 	//NewTime=Time6_Cnt;
-  //下面三行就是通过对角速度积分实现各个轴的角度测量，当然假设各轴的起始角度都是0
-  //Gx=Gx+(ggx-0)*20/1000;
-  //Gy=Gy+(ggy-0)*20/1000;
-  Gz=Gz+(ggz-0)*(NewTime-LastTime)*2/1000;
-	 
-  //一阶补偿
+	//下面三行就是通过对角速度积分实现各个轴的角度测量，当然假设各轴的起始角度都是0
+	//Gx=Gx+(ggx-0)*20/1000;
+	//Gy=Gy+(ggy-0)*20/1000;
+	Gz=Gz+(ggz-0)*(NewTime-LastTime)*2/1000;
+
+	//一阶补偿
 	//ImuData.Yaw=Gz*0.99+0.01*Angle_accX;
 	if(Gz<0){Gz=359;}
 	else if(Gz>360){Gz=0;}
-	
+
 	ImuData.Yaw=Gz;
 	LastTime=NewTime;
-}
-
-
-//---------------------------------------------------------------------------------------------------
-// ????
-
-#define Kp 2.0f                        // ??????????????/???
-#define Ki 0.001f                // ????????????????
-#define halfT 0.001f                // ???????
-
-float q0 = 1, q1 = 0, q2 = 0, q3 = 0;          // ??????,??????
-float exInt = 0, eyInt = 0, ezInt = 0;        // ?????????
-
-float Yaw,Pitch,Roll;  //???,???,???
-
-
-void IMUupdate(float gx, float gy, float gz, float ax, float ay, float az)
-{
-        float norm;
-        float vx, vy, vz;
-        float ex, ey, ez;  
-				gx=gx-Gx_offset;
-				gy=gy-Gy_offset;
-				gz=gz-Gz_offset;
-				
-				
-        // ?????
-        norm = sqrt(ax*ax + ay*ay + az*az);      
-        ax = ax / norm;                   //???
-        ay = ay / norm;
-        az = az / norm;      
-
-        // ???????
-        vx = 2*(q1*q3 - q0*q2);
-        vy = 2*(q0*q1 + q2*q3);
-        vz = q0*q0 - q1*q1 - q2*q2 + q3*q3;
-
-        // ???????????????????????????
-        ex = (ay*vz - az*vy);
-        ey = (az*vx - ax*vz);
-        ez = (ax*vy - ay*vx);
-
-        // ??????????
-        exInt = exInt + ex*Ki;
-        eyInt = eyInt + ey*Ki;
-        ezInt = ezInt + ez*Ki;
-
-        // ?????????
-        gx = gx + Kp*ex + exInt;
-        gy = gy + Kp*ey + eyInt;
-        gz = gz + Kp*ez + ezInt;
-
-        // ??????????
-        q0 = q0 + (-q1*gx - q2*gy - q3*gz)*halfT;
-        q1 = q1 + (q0*gx + q2*gz - q3*gy)*halfT;
-        q2 = q2 + (q0*gy - q1*gz + q3*gx)*halfT;
-        q3 = q3 + (q0*gz + q1*gy - q2*gx)*halfT;  
-
-        // ?????
-        norm = sqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
-        q0 = q0 / norm;
-        q1 = q1 / norm;
-        q2 = q2 / norm;
-        q3 = q3 / norm;
-
-        //Pitch  = asin(-2 * q1 * q3 + 2 * q0* q2)* 57.3; // pitch ,?????
-        //Roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3; // rollv
-        Yaw = atan2(2*(q1*q2 + q0*q3),q0*q0+q1*q1-q2*q2-q3*q3) * 57.3;                
 }

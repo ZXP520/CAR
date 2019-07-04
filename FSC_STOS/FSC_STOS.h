@@ -1,4 +1,3 @@
-//БрепЃКЭћДЉЧяЫЎ
 #ifndef _FSC_STOS_H_
 #define _FSC_STOS_H_
 

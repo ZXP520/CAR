@@ -1,3 +1,15 @@
+/**
+  ******************************************************************************
+  * @file    dealdata.c
+  * @author  zxp
+  * @version V1.0.0
+  * @date    2019-06-19
+  * @brief   用于串口接收的各类数据、uwb模块的定位数据处理等
+  ******************************************************************************
+  * @attention 
+  * 
+  ******************************************************************************
+  */
 #include "dealdata.h"
 #include "sys.h" 
 #include "delay.h"
@@ -68,7 +80,7 @@ void GetIMU0ffset(void)
 		{
 			GetData(ITG3205_Addr,GYRO_XOUT_H);
 			GetData(ITG3205_Addr,GYRO_YOUT_H);
-		  GetData(ITG3205_Addr,GYRO_ZOUT_H);						//陀螺仪数据
+			GetData(ITG3205_Addr,GYRO_ZOUT_H);						//陀螺仪数据
 			
 			GetQMC5883Data(ADXL345_Addr,ACCEL_XOUT_H);
 			GetQMC5883Data(ADXL345_Addr,ACCEL_YOUT_H);
@@ -187,8 +199,6 @@ void SendEncoderAndIMU20Ms(u8 sendflag)
 			//陀螺仪角度计算
 			Angle_Calcu1();
 			Time_Cnt=0;
-			
-			
 			break;
 		}
 		default:break;
@@ -209,10 +219,10 @@ static u8 ExtractData(void)
 	if(RXData.InRxData[0]==(s16)DATAHEAD )//数据头
 	{
 		//取得数据特征
-		DealData_Rx.FrameLength=RXData.ChRxData[2];   						 //包长度
-		DealData_Rx.CMD=(RXData.ChRxData[3] + (RXData.ChRxData[4]<<8));//命令     //先低后高
-		DealData_Rx.Respond_Flag=RXData.ChRxData[5];               //响应标志
-		DealData_Rx.DataNum=RXData.ChRxData[6];										 //数据个数
+		DealData_Rx.FrameLength=RXData.ChRxData[2];   						 			//包长度
+		DealData_Rx.CMD=(RXData.ChRxData[3] + (RXData.ChRxData[4]<<8)); //命令     //先低后高
+		DealData_Rx.Respond_Flag=RXData.ChRxData[5];               			//响应标志
+		DealData_Rx.DataNum=RXData.ChRxData[6];										 			//数据个数
 		switch(DealData_Rx.DataNum)
 		{
 			case 1:TempRxData.InTempData[0]=RXData.ChRxData[7];break;
@@ -221,6 +231,7 @@ static u8 ExtractData(void)
 			case 5:for(i=0;i<5;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break;
 			case 6:for(i=0;i<6;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break;
 			case 8:for(i=0;i<8;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break; //速度设置最多为8
+			case 9:for(i=0;i<9;i++){TempRxData.ChTempData[i]=RXData.ChRxData[7+i];}break; //摇杆数据为9
 			default:break;
 		}
 		DealData_Rx.CheckSum=(RXData.ChRxData[DealData_Rx.FrameLength-1]<<8)+RXData.ChRxData[DealData_Rx.FrameLength-2];
@@ -254,7 +265,6 @@ static u8 ExtractData(void)
 PSBKEY PSBKey;
 void DealRXData(void)
 {
-	static u8 SChassisAttitudeFlag=0;
 	if(ExtractData()){;}
 	else{return;}
 	switch(DealData_Rx.CMD)//命令解析
@@ -395,7 +405,7 @@ void DealRXData(void)
 			ThreeWheelSpeedSet(TempRxData.InTempData[0]/100*(PI*Wheel_D));//前左
 			FourWheelSpeedSet (TempRxData.InTempData[1]/100*(PI*Wheel_D));//前右
 			LeftWheelSpeedSet	(TempRxData.InTempData[2]/100*(PI*Wheel_D));//左
-		  RightWheelSpeedSet(TempRxData.InTempData[3]/100*(PI*Wheel_D));//右
+		    RightWheelSpeedSet(TempRxData.InTempData[3]/100*(PI*Wheel_D));//右
 			break;  
 		}
 		case SWhellSpeed: 			//轮子速度
@@ -403,7 +413,7 @@ void DealRXData(void)
 			ThreeWheelSpeedSet(TempRxData.InTempData[0]);//前左
 			FourWheelSpeedSet (TempRxData.InTempData[1]);//前右
 			LeftWheelSpeedSet	(TempRxData.InTempData[2]);//左
-		  RightWheelSpeedSet(TempRxData.InTempData[3]);//右
+		    RightWheelSpeedSet(TempRxData.InTempData[3]);//右
 			break;
 		}
 		case STurningRadius:    //拐弯半径
@@ -417,29 +427,34 @@ void DealRXData(void)
 		
 		
 		case SChassisAttitude:  //底盘姿态
+		{	
+			OmniWheelscontrol(TempRxData.InTempData[0],TempRxData.InTempData[1],TempRxData.InTempData[2],0);
+			break;
+		}
+		case SPSRawData:		//PS原始数据
 		{
-			if(TempRxData.InTempData[0] | TempRxData.InTempData[1] | TempRxData.InTempData[2])//底盘速度不为0设置底盘速度
-			{
-				SChassisAttitudeFlag=1;
-				OmniWheelscontrol(TempRxData.InTempData[0],TempRxData.InTempData[1],TempRxData.InTempData[2],0);
-			}
-			else if(SChassisAttitudeFlag)//设置了底盘速度
-			{
-				PSBKey.GREEN=0;
-				PSBKey.RED=0  ;
-				PSBKey.BLUE=0 ;
-				PSBKey.PINK=0	;
-				OmniWheelscontrol(0,0,0,0);
-				SChassisAttitudeFlag=0;
-			}
+			PSBKey.PSS_LY=TempRxData.InTempData[0];
+			PSBKey.PSS_LX=TempRxData.InTempData[1];
+			PSBKey.PSS_RY=TempRxData.InTempData[2];
+			PSBKey.PSS_RX=TempRxData.InTempData[3];
 			//遥控器按键
-			switch(TempRxData.InTempData[3])
+			switch(TempRxData.ChTempData[8])
 			{
-				case PSB_GREEN: PSBKey.GREEN=1;break;
-				case PSB_RED:	  PSBKey.RED=1  ;break;
-				case PSB_BLUE: 	PSBKey.BLUE=1 ;break;
-				case PSB_PINK: 	PSBKey.PINK=1	;break;
+				case PSB_PAD_UP: 		PSBKey.UP=1;	 break;
+				case PSB_PAD_RIGHT: PSBKey.RIGHT=1;break;
+				case PSB_PAD_DOWN: 	PSBKey.DOWN=1; break;
+				case PSB_PAD_LEFT: 	PSBKey.LEFT=1; break;
+				case PSB_L2: 				PSBKey.L2=1;	 break;
+				case PSB_R2: 				PSBKey.R2=1;	 break;
+				case PSB_L1: 				PSBKey.L1=1;	 break;
+				case PSB_R1: 				PSBKey.R1=1;	 break;
+				case PSB_GREEN: 		PSBKey.GREEN=1;break;
+				case PSB_RED:	  		PSBKey.RED=1  ;break;
+				case PSB_BLUE: 			PSBKey.BLUE=1 ;break;
+				case PSB_PINK: 			PSBKey.PINK=1	;break;
 			}
+			DealPSData();
+			
 			break;
 		}
 		//正确的命令才响应
@@ -453,11 +468,26 @@ void DealRXData(void)
 	}
 }
 
-
+/*******************************************************************************
+* Function Name  : DealRXData
+* Description    : 处理PS2标签数据
+* Input          : None 
+* Output         : None
+* Return         : None 
+****************************************************************************** */
+void DealPSData(void)
+{
+	s16 speed_RX=0,speed_RY=0,speed_LX=0,speed_LY=0; 
+	
+	speed_LX=(PSBKey.PSS_LX-128)*2.5;
+	speed_LY=(127-PSBKey.PSS_LY)*2.5;
+	speed_RX=(PSBKey.PSS_RX-128);
+	OmniWheelscontrol(speed_LX,speed_LY,speed_RX,0);
+}
 
 /*******************************************************************************
 * Function Name  : DealRXData
-* Description    : 处理标签数据
+* Description    : 处理UWB标签数据
 * Input          : None 
 * Output         : None
 * Return         : None 
@@ -549,10 +579,13 @@ void DealUWBData(void)
 	}
 }
 
-
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-绝对值
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*******************************************************************************
+* Function Name  : UWBAbs
+* Description    : 绝对值
+* Input          : None 
+* Output         : None
+* Return         : None 
+****************************************************************************** */
 double UWBAbs(double data)
 {
 	if(data<0)

@@ -10,10 +10,10 @@
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 #if		VERSION==0
 	#define Wheel_D          	67   //mm轮子直径
-	#define Wheel_SPACING		  263  //mm轮间距
+	#define Wheel_SPACING		263  //mm轮间距
 #elif VERSION==1
 	#define Wheel_D          	59   //mm轮子直径
-	#define Wheel_SPACING		  157  //mm轮间距
+	#define Wheel_SPACING		157  //mm轮间距
 #endif
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 #define Wheel_RATIO     	56   //减速比
@@ -24,38 +24,40 @@
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 typedef struct
 {
-  _Bool 	Direct;		//方向
-  int 	AimsEncoder;//目标脉冲数
-	int 	MotoPwm;		//轮子PWM
+	_Bool Direct;		//方向
+	int	  AimsEncoder;  //目标脉冲数
+	int	  MotoPwm;		//轮子PWM
 	s16   NowSpeed;		//轮子当前速度
-	s16   AimSpeed;   //轮子目标速度
+	s16   AimSpeed;     
+	
+	//轮子目标速度
 	
 	//整个轮子的状态AllWheel
 	//u8    stop_flag;  //停止标志
 	union
 	{
-			struct bit_feild
-			{
-					char bit0: 1;  //急停标志
-					char bit1: 1;  //前左轮
-					char bit2: 1;  //前右轮
-					char bit3: 1;  //左轮
-					char bit4: 1;  //右轮
-					char bit5: 1;  //陀螺仪
-					char bit6: 1;  //加速度计
-					char bit7: 1;  //磁力计
-					char bit8: 1;  //电池电压
-					char bit9: 1;
-					char bit10:1;
-					char bit11:1;
-					char bit12:1;
-					char bit13:1;
-					char bit14:1;
-					char bit15:1;
-			} bits;
-			s16 data;
+		struct bit_feild
+		{
+				char bit0: 1;  //急停标志
+				char bit1: 1;  //前左轮
+				char bit2: 1;  //前右轮
+				char bit3: 1;  //左轮
+				char bit4: 1;  //右轮
+				char bit5: 1;  //陀螺仪
+				char bit6: 1;  //加速度计
+				char bit7: 1;  //磁力计
+				char bit8: 1;  //电池电压
+				char bit9: 1;
+				char bit10:1;
+				char bit11:1;
+				char bit12:1;
+				char bit13:1;
+				char bit14:1;
+				char bit15:1;
+		} bits;
+		s16 data;
 	}Erroe_flag;
-	u8    Electricity;    //电量
+	u8	Electricity;    //电量
 	
 }Wheel;
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
