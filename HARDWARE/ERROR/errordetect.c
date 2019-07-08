@@ -42,9 +42,10 @@ static void ReportError(void)
 	u8 i=0; 
 	TXData.InRxData[0]=DATAHEAD;										//头
 	TXData.ChRxData[2]=11;			//帧长度
-	TXData.ChRxData[3]=EmergencyStop&0xFF;			//命令   小端模式先低后高
-	TXData.ChRxData[4]=(EmergencyStop>>8)&0xFF;
-	TXData.ChRxData[5]=0;
+	TXData.ChRxData[3]=PRODUCTTYPE;
+	TXData.ChRxData[4]=EmergencyStop&0xFF;			//命令   小端模式先低后高
+	TXData.ChRxData[5]=(EmergencyStop>>8)&0xFF;
+	
 	TXData.ChRxData[6]=2;					//数据个数	
 	//小端模式，先发高位
 	for(i=0;i<2;i++)
@@ -74,6 +75,7 @@ void ErrorDetect(void)
 {
 	static u8 i=0,Time_Cnt=0,error0=0,error1=0,error2=0,error3=0,error4=0,error5=0,error6=0,error7=0;
 	Time_Cnt++;
+	
 	
 	//通信检测200MS
 	if(DealData_Rx.Success_Flag)
@@ -202,8 +204,8 @@ void ErrorDetect(void)
 	for(i=0;i<3;i++){ImuData.OMagnetData[i]=ImuData.NMagnetData[i];}
 
 		
-	//如果有错误1S
-	if(AllWheel.Erroe_flag.data&&Time_Cnt>10)
+	//如果有错误1S 且20MS数据上传没打开
+	if(AllWheel.Erroe_flag.data&&Time_Cnt>10 && DealData_Rx.SendData20ms_Flag==0)
 	{
 		Time_Cnt=0;
 		TempTxData.InTempData[0]=AllWheel.Erroe_flag.data;

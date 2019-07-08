@@ -143,7 +143,7 @@ void Task3(void)
 	while(1) 
 	{	 
 		//硬件初始化成功则串口发送陀螺仪数据读取频率为50hz
-		SendEncoderAndIMU20Ms(DealData_Rx.Hardware_Init);	
+		SendEncoderAndIMU20Ms(DealData_Rx.SendData20ms_Flag);	
 		if(flag)
 		{
 			
